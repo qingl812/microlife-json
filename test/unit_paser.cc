@@ -1,4 +1,5 @@
 #include "detail/basic_json.hpp"
+#include "unit.hpp"
 
 #include <gtest/gtest.h>
 
@@ -60,6 +61,22 @@ TEST(parser, null) {
     value.type = type_t::object;
     EXPECT_EQ(parse_t::ok, parse(&value, "null"));
     EXPECT_EQ(type_t::null, get_type(&value));
+
+    value.type = type_t::object;
+    EXPECT_EQ(parse_t::ok, parse(&value, " null "));
+    EXPECT_EQ(type_t::null, get_type(&value));
+
+    value.type = type_t::object;
+    EXPECT_EQ(parse_t::invalid_value, parse(&value, "unull"));
+    EXPECT_EQ(type_t::null, get_type(&value));
+
+    value.type = type_t::object;
+    EXPECT_EQ(parse_t::invalid_value, parse(&value, "nnull"));
+    EXPECT_EQ(type_t::null, get_type(&value));
+
+    value.type = type_t::object;
+    EXPECT_EQ(parse_t::invalid_value, parse(&value, "nulll"));
+    EXPECT_EQ(type_t::null, get_type(&value));
 }
 
 TEST(parser, boolean) {
@@ -75,8 +92,11 @@ TEST(parser, boolean) {
     EXPECT_EQ(type_t::boolean, get_type(&value));
     EXPECT_EQ(false, value.value.boolean);
 
-    value.type = type_t::null;
+    value.type = type_t::object;
     EXPECT_EQ(parse_t::invalid_value, parse(&value, "faase"));
     EXPECT_EQ(type_t::null, get_type(&value));
-    EXPECT_EQ(false, value.value.boolean);
+
+    value.type = type_t::object;
+    EXPECT_EQ(parse_t::invalid_value, parse(&value, "truee"));
+    EXPECT_EQ(type_t::null, get_type(&value));
 }

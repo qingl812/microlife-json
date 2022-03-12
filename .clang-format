@@ -1,5 +1,4 @@
 ---
-# 语言: None, Cpp, Java, JavaScript, ObjC, Proto, TableGen, TextProto
 Language: Cpp
 # BasedOnStyle:  LLVM
 # 访问说明符(public、private等)的偏移
@@ -15,21 +14,21 @@ AlignOperands: Align
 AlignTrailingComments: true
 AllowAllArgumentsOnNextLine: true
 AllowAllConstructorInitializersOnNextLine: true
-AllowAllParametersOfDeclarationOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: true
 # 允许短的枚举放在同一行
 AllowShortEnumsOnASingleLine: false
-AllowShortBlocksOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
 AllowShortCaseLabelsOnASingleLine: false
 # 取决于值，int f() { return 0; } 可以放在一行。
 AllowShortFunctionsOnASingleLine: Inline
 AllowShortLambdasOnASingleLine: All
-AllowShortIfStatementsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
 # 总是在template声明后换行
-AlwaysBreakTemplateDeclarations: Yes
+AlwaysBreakTemplateDeclarations: true
 AttributeMacros:
     - __capability
 BinPackArguments: true
@@ -55,7 +54,7 @@ BraceWrapping:
     SplitEmptyNamespace: true
 BreakBeforeBinaryOperators: None
 BreakBeforeConceptDeclarations: true
-BreakBeforeBraces : Attach
+BreakBeforeBraces: Attach
 BreakBeforeInheritanceComma: false
 BreakInheritanceList: BeforeColon
 BreakBeforeTernaryOperators: true
@@ -108,7 +107,8 @@ IndentExternBlock: AfterExternBlock
 IndentRequires: false
 # 缩进宽度
 IndentWidth: 4
-IndentWrappedFunctionNames: false
+# 如果函数定义或声明被包装在类型之后，则缩进。
+IndentWrappedFunctionNames: true
 InsertTrailingCommas: None
 JavaScriptQuotes: Leave
 JavaScriptWrapImports: true
@@ -116,9 +116,7 @@ KeepEmptyLinesAtTheStartOfBlocks: true
 LambdaBodyIndentation: Signature
 MacroBlockBegin: ""
 MacroBlockEnd: ""
-# 连续空行的最大数量
-MaxEmptyLinesToKeep: 2
-# 命名空间的缩进: None, Inner(缩进嵌套的命名空间中的内容), All
+MaxEmptyLinesToKeep: 1
 NamespaceIndentation: None
 ObjCBinPackProtocolList: Auto
 ObjCBlockIndentWidth: 2
@@ -134,14 +132,13 @@ PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 60
 PenaltyIndentedWhitespace: 0
-# 指针和引用的对齐: Left, Right, Middle
+# 指针对齐方式
 PointerAlignment: Left
 PPIndentWidth: -1
 ReferenceAlignment: Pointer
 ReflowComments: true
 ShortNamespaceLines: 1
-# 允许排序 #include
-SortIncludes: false
+SortIncludes: CaseSensitive
 SortJavaStaticImport: Before
 SortUsingDeclarations: true
 SpaceAfterCStyleCast: false

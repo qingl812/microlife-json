@@ -16,54 +16,67 @@ namespace detail {
  * @brief 用于解析 JSON
  */
 namespace parser {
+inline bool is_whitespace(char c) {
+    return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+}
+
 // 解析所有空格
 inline void parse_whitespace(context_s* context) {
     const char* p = context->json;
-    while (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')
+    while (is_whitespace(*p))
         p++;
     context->json = p;
 }
 
-// 解析一个 null 值
-inline parse_t parse_null(context_s* c, value_s* v) {
-    assert(*c->json == 'n');
-
-    if (c->json[1] == 'u' && c->json[2] == 'l' && c->json[3] == 'l') {
-        c->json += 4;
-        v->type = type_t::null;
+// 解析字面量 null true false
+inline parse_t parse_literal(
+    context_s* context, // 要解析的内容
+    value_s* value,     // 解析的结果
+    const char* literal, // 预期解析结果，假定第一个字符一定符合预期
+    type_t type          // 解析结果类型
+) {
+    auto json = context->json;
+    json++;
+    // strcmp
+    while (*literal != '\0') {
+        if (*json != *literal) {
+            return parse_t::invalid_value;
+        }
+        json++;
+        literal++;
+    }
+    // 判断 json 的这个单词已经结束
+    if (is_whitespace(*json) || *json == '\0') {
+        context->json = json;
+        value->type = type;
         return parse_t::ok;
-    } else {
+    } else
         return parse_t::invalid_value;
-    }
-}
-
-// 解析一个 boolean 值
-inline parse_t parse_boolean(context_s* c, value_s* v) {
-    assert(*c->json == 't' || *c->json == 'f');
-
-    if (c->json[1] == 'r' && c->json[2] == 'u' && c->json[3] == 'e') {
-        c->json += 4;
-        v->value.boolean = true;
-    } else if (c->json[1] == 'a' && c->json[2] == 'l' && c->json[3] == 's' &&
-               c->json[4] == 'e') {
-        c->json += 5;
-        v->value.boolean = false;
-    } else {
-        return parse_t::invalid_value;
-    }
-    v->type = type_t::boolean;
-    return parse_t::ok;
 }
 
 // 解析一个 JSON 值
 inline parse_t parse_value(context_s* context, value_s* value) {
-    // 检查第一个字符
+    parse_t ret;
+
     switch (*context->json) {
     case 'n':
-        return parse_null(context, value);
+        // null
+        return parse_literal(context, value, "ull", type_t::null);
+
     case 't':
+        // true
+        ret = parse_literal(context, value, "rue", type_t::boolean);
+        if (ret == parse_t::ok)
+            value->value.boolean = true;
+        return ret;
+
     case 'f':
-        return parse_boolean(context, value);
+        // false
+        ret = parse_literal(context, value, "alse", type_t::boolean);
+        if (ret == parse_t::ok)
+            value->value.boolean = false;
+        return ret;
+
     case '\0':
         return parse_t::expect_value;
     default:
@@ -81,7 +94,7 @@ inline parse_t parse(value_s* value, const char* json) {
 
     parse_whitespace(&context);
     auto ret = parse_value(&context, value);
-    if (ret == parse_t::expect_value || ret == parse_t::ok) {
+    if (ret == parse_t::ok) {
         parse_whitespace(&context);
         if (*context.json != '\0')
             return parse_t::root_not_singular;

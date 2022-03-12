@@ -11,7 +11,7 @@ set(
   "include/detail/type_t.hpp"
   "include/detail/value_s.hpp"
 
-  "test/unit_death.cc"
+  "test/unit.hpp"
   "test/unit_paser.cc"
 )
 include_directories(include)
