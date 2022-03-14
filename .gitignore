@@ -2,3 +2,4 @@ build/
 lcov/html/
 .vscode/
 out/
+.history/

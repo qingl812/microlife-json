@@ -2,24 +2,22 @@
 
 // 测试 parse_t parse(); 函数返回值
 // 以及其 value.type 是否符合预期
-#define TEST_RETURN(json, ret, type)                                           \
+#define TEST_RETURN(_json, _ret, _type)                                        \
     do {                                                                       \
-        microlife::detail::value_s value;                                      \
-        EXPECT_EQ(microlife::detail::parse_t::ret,                             \
-                  microlife::detail::parser::parse(&value, json));             \
-        EXPECT_EQ(microlife::detail::type_t::type,                             \
-                  microlife::detail::parser::get_type(&value));                \
+        microlife::detail::parser parser;                                      \
+        auto parse_res = parser.parse(_json);                                  \
+        EXPECT_EQ(microlife::detail::parse_t::_ret, parse_res);                \
+        EXPECT_EQ(microlife::detail::type_t::_type, parser.value->type);       \
     } while (0)
 
 // 带有 VALUE 的测试
-#define TEST_VALUE(expected, json, type, get_function)                         \
+#define TEST_VALUE(_expected, _json, _type, _value_type)                       \
     do {                                                                       \
-        microlife::detail::value_s value;                                      \
-        EXPECT_EQ(microlife::detail::parse_t::ok,                              \
-                  microlife::detail::parser::parse(&value, json));             \
-        EXPECT_EQ(microlife::detail::type_t::type,                             \
-                  microlife::detail::parser::get_type(&value));                \
-        EXPECT_EQ(expected, microlife::detail::parser::get_function(&value));  \
+        microlife::detail::parser parser;                                      \
+        auto parse_res = parser.parse(_json);                                  \
+        EXPECT_EQ(microlife::detail::parse_t::ok, parse_res);                  \
+        EXPECT_EQ(microlife::detail::type_t::_type, parser.value->type);       \
+        EXPECT_EQ(_expected, parser.value->_value_type);                       \
     } while (0)
 
 // 返回 parse_t::expect_value 的测试
@@ -63,7 +61,7 @@ TEST(parser, null) {
 
 // boolean
 #define TEST_BOOLEAN(expected, json)                                           \
-    TEST_VALUE(expected, json, boolean, get_boolean)
+    TEST_VALUE(expected, json, boolean, boolean)
 TEST(parser, boolean) {
     TEST_BOOLEAN(true, "true");
     TEST_BOOLEAN(false, "false");
@@ -75,8 +73,7 @@ TEST(parser, boolean) {
 }
 
 // number 的测试
-#define TEST_NUMBER(expected, json)                                            \
-    TEST_VALUE(expected, json, number, get_number)
+#define TEST_NUMBER(expected, json) TEST_VALUE(expected, json, number, number)
 #define TEST_NUMBER_TOO_BIG(json) TEST_RETURN(json, number_too_big, null)
 TEST(parser, number) {
     TEST_NUMBER(0.0, "0");

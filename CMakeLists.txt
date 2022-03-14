@@ -45,3 +45,5 @@ target_link_libraries(
 
 include(GoogleTest)
 gtest_discover_tests(${PROJECT_NAME})
+
+add_definitions(-Wall) # 允许发出 GCC 能够提供的所有有用的警告

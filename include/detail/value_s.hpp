@@ -1,6 +1,9 @@
 #pragma once
 #include "type_t.hpp"
 
+#include <assert.h>
+#include <stddef.h> // size_t
+
 namespace microlife {
 namespace detail {
 //////////////
@@ -15,7 +18,11 @@ struct value_s {
     union {
         bool boolean;
         double number;
-    } value;
+        struct {
+            char* str;
+            size_t length;
+        };
+    };
     type_t type;
 };
 } // namespace detail
