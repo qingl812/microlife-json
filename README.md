@@ -24,6 +24,7 @@ bash lcov/server.sh
 
 ## 参考资料
 
+- [ECMA-404](docs/ECMA-404_2nd_edition_december_2017.pdf) https://www.ecma-international.org/publications-and-standards/standards/ecma-404/
 - [nlohmann/json](https://github.com/nlohmann/json)
 - [miloyip/json-tutorial](https://github.com/miloyip/json-tutorial)
 - [Nomango/configor](https://github.com/Nomango/configor)

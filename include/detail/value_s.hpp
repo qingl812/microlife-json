@@ -14,6 +14,7 @@ namespace detail {
 struct value_s {
     union {
         bool boolean;
+        double number;
     } value;
     type_t type;
 };

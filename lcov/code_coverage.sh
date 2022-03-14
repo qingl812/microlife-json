@@ -4,8 +4,13 @@ set -e
 
 lcov="lcov"
 log="lcov.log"
-build="build"
+build="out"
 html="html"
+
+# cmake
+cmake -S . -B ${build}
+cmake --build ${build}
+${build}/microlife-json
 
 cd ${build}
 # TODO:

@@ -14,7 +14,8 @@ enum class parse_t : uint8_t {
     ok,
     expect_value,
     invalid_value,
-    root_not_singular
+    root_not_singular,
+    number_too_big
 };
 } // namespace detail
 } // namespace microlife
