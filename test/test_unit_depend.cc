@@ -10,18 +10,22 @@
     } while (0)
 
 // os parse_t
-#define TEST_OS_PARSE_T(expected, target) TEST_OS(expected, parse_t::target)
-TEST(unitHpp, os_parse_t) {
+#define TEST_OS_PARSE_T(expected, target)                                      \
+    TEST_OS(expected, parser::error_t::target)
+TEST(unitHpp, os_error_t) {
     TEST_OS_PARSE_T("ok", ok);
     TEST_OS_PARSE_T("expect_value", expect_value);
     TEST_OS_PARSE_T("invalid_value", invalid_value);
     TEST_OS_PARSE_T("root_not_singular", root_not_singular);
     TEST_OS_PARSE_T("number_too_big", number_too_big);
+    TEST_OS_PARSE_T("invalid_string_char", invalid_string_char);
+    TEST_OS_PARSE_T("miss_quotation_mark", miss_quotation_mark);
+    TEST_OS_PARSE_T("invalid_string_escape", invalid_string_escape);
 
     // unknown type
     std::ostringstream osstring;
     std::ostream& os = osstring;
-    os << microlife::detail::parse_t(100);
+    os << microlife::detail::parser::error_t(100);
     EXPECT_EQ("unknown parse_t", osstring.str());
 }
 

@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <stddef.h> // size_t
+#include <string>
 
 namespace microlife {
 namespace detail {
@@ -18,10 +19,7 @@ struct value_s {
     union {
         bool boolean;
         double number;
-        struct {
-            char* str;
-            size_t length;
-        };
+        std::string* string;
     };
     type_t type;
 };

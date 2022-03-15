@@ -6,7 +6,6 @@ set(
   PROJECT_SOURCES
   "include/detail/basic_json.hpp"
   "include/detail/context_s.hpp"
-  "include/detail/parse_t.hpp"
   "include/detail/parser.hpp"
   "include/detail/type_t.hpp"
   "include/detail/value_s.hpp"

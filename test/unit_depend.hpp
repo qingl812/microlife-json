@@ -6,22 +6,32 @@
 
 namespace microlife {
 namespace detail {
-static std::ostream& operator<<(std::ostream& os, const parse_t& parse) {
-    switch (parse) {
-    case microlife::detail::parse_t::ok:
+static std::ostream& operator<<(std::ostream& os,
+                                const parser::error_t& error) {
+    switch (error) {
+    case parser::error_t::ok:
         return os << "ok";
 
-    case microlife::detail::parse_t::expect_value:
+    case parser::error_t::expect_value:
         return os << "expect_value";
 
-    case microlife::detail::parse_t::invalid_value:
+    case parser::error_t::invalid_value:
         return os << "invalid_value";
 
-    case microlife::detail::parse_t::root_not_singular:
+    case parser::error_t::root_not_singular:
         return os << "root_not_singular";
 
-    case microlife::detail::parse_t::number_too_big:
+    case parser::error_t::number_too_big:
         return os << "number_too_big";
+
+    case parser::error_t::miss_quotation_mark:
+        return os << "miss_quotation_mark";
+
+    case parser::error_t::invalid_string_char:
+        return os << "invalid_string_char";
+
+    case parser::error_t::invalid_string_escape:
+        return os << "invalid_string_escape";
 
     default:
         return os << "unknown parse_t";

@@ -1,23 +1,43 @@
 #include "unit_depend.hpp"
 
+// 测试 parser 构造函数和析构函数
+TEST(parser, constructor) {
+    microlife::detail::parser* parser;
+
+    parser = new microlife::detail::parser();
+    delete parser;
+
+    parser = new microlife::detail::parser();
+    parser->parse("null");
+    parser->parse("true");
+    delete parser;
+}
+
+#define _TEST_RETURN(_json, _ret, _type)                                       \
+    microlife::detail::parser parser;                                          \
+    parser.parse(_json);                                                       \
+    EXPECT_EQ(microlife::detail::parser::error_t::_ret, parser.m_error);       \
+    EXPECT_EQ(microlife::detail::type_t::_type, parser.m_value->type);
+
 // 测试 parse_t parse(); 函数返回值
 // 以及其 value.type 是否符合预期
 #define TEST_RETURN(_json, _ret, _type)                                        \
     do {                                                                       \
-        microlife::detail::parser parser;                                      \
-        auto parse_res = parser.parse(_json);                                  \
-        EXPECT_EQ(microlife::detail::parse_t::_ret, parse_res);                \
-        EXPECT_EQ(microlife::detail::type_t::_type, parser.value->type);       \
+        _TEST_RETURN(_json, _ret, _type);                                      \
     } while (0)
 
 // 带有 VALUE 的测试
 #define TEST_VALUE(_expected, _json, _type, _value_type)                       \
     do {                                                                       \
-        microlife::detail::parser parser;                                      \
-        auto parse_res = parser.parse(_json);                                  \
-        EXPECT_EQ(microlife::detail::parse_t::ok, parse_res);                  \
-        EXPECT_EQ(microlife::detail::type_t::_type, parser.value->type);       \
-        EXPECT_EQ(_expected, parser.value->_value_type);                       \
+        _TEST_RETURN(_json, ok, _type);                                        \
+        EXPECT_EQ(_expected, parser.m_value->_value_type);                     \
+    } while (0)
+
+// 带有 指针形式VALUE 的测试
+#define TEST_PVALUE(_expected, _json, _type, _value_type)                      \
+    do {                                                                       \
+        _TEST_RETURN(_json, ok, _type);                                        \
+        EXPECT_EQ(_expected, *parser.m_value->_value_type);                    \
     } while (0)
 
 // 返回 parse_t::expect_value 的测试
@@ -131,4 +151,43 @@ TEST(parser, number) {
 
     TEST_NUMBER_TOO_BIG("1e309");
     TEST_NUMBER_TOO_BIG("-1e309");
+}
+
+// string 的测试
+#define TEST_STRING(_string)                                                   \
+    TEST_PVALUE(_string, "\"" _string "\"", string, string)
+
+#define TEST_MISS_QUOTATION_MARK(json)                                         \
+    TEST_RETURN(json, miss_quotation_mark, null)
+
+#define TEST_INVALID_STRING_ESCAPE(json)                                       \
+    TEST_RETURN(json, invalid_string_escape, null)
+
+#define TEST_INVALID_STRING_CHAR(json)                                         \
+    TEST_RETURN(json, invalid_string_char, null)
+TEST(parser, string) {
+    TEST_STRING("hello");
+
+    // 连续多次解析
+    microlife::detail::parser parser;
+
+    parser.parse("\"Hello world!\"");
+    ASSERT_EQ(parser.m_value->type, microlife::detail::type_t::string);
+    EXPECT_EQ("Hello world!", *parser.m_value->string);
+
+    parser.parse("\"good\"");
+    ASSERT_EQ(parser.m_value->type, microlife::detail::type_t::string);
+    EXPECT_EQ("good", *parser.m_value->string);
+
+    // 缺失右引号
+    TEST_MISS_QUOTATION_MARK("\"");
+    TEST_MISS_QUOTATION_MARK("\"abc");
+
+    // TEST_INVALID_STRING_ESCAPE("\"\\v\"");
+    // TEST_INVALID_STRING_ESCAPE("\"\\'\"");
+    // TEST_INVALID_STRING_ESCAPE("\"\\0\"");
+    // TEST_INVALID_STRING_ESCAPE("\"\\x12\"");
+
+    // TEST_INVALID_STRING_CHAR("\"\x01\"");
+    // TEST_INVALID_STRING_CHAR("\"\x1F\"");
 }
