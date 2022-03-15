@@ -31,7 +31,9 @@ public:
         number_too_big,        // 数字过大
         miss_quotation_mark,   // 缺失右引号
         invalid_string_escape, // 无效的转义字符
-        invalid_string_char    // 无效的 string 字符
+        invalid_string_char,   // 无效的 string 字符
+        invalid_unicode_hex,   // 无效的16进制编码
+        invalid_unicode_surrogate
     };
 
 public:
@@ -222,16 +224,122 @@ private: // private static
         assert(*m_cur == '\"');
 
         auto p = m_cur + 1;
+        value->string = new std::string(m_cur + 1, p);
         while (true) {
-            if (*p == '\0')
+            switch (*p) {
+            case '\0':
+                delete value->string;
                 return failed(error_t::miss_quotation_mark);
-            else if (*p == '\"') {
-                value->string = new std::string(m_cur + 1, p);
+
+            case '\"':
                 value->type = type_t::string;
                 m_cur = p + 1;
                 return;
-            } else
+
+            case '\\':
                 p++;
+                switch (*p) {
+                case '\"':
+                case '\\':
+                case '/':
+                    value->string->push_back(*p);
+                    break;
+                case 'b':
+                    value->string->push_back('\b');
+                    break;
+                case 'f':
+                    value->string->push_back('\f');
+                    break;
+                case 'n':
+                    value->string->push_back('\n');
+                    break;
+                case 'r':
+                    value->string->push_back('\r');
+                    break;
+                case 't':
+                    value->string->push_back('\t');
+                    break;
+                case 'u': {
+                    // 解析 utf-8
+                    p++;
+                    unsigned u, u2;
+                    // 解析 4 位的 16 进制数
+                    auto parse_hex4 = [&](unsigned& u) {
+                        u = 0;
+                        for (int i = 0; i < 4; i++) {
+                            char ch = *p++;
+                            u <<= 4;
+                            if (ch >= '0' && ch <= '9')
+                                u |= ch - '0';
+                            else if (ch >= 'A' && ch <= 'F')
+                                u |= ch - ('A' - 10);
+                            else if (ch >= 'a' && ch <= 'f')
+                                u |= ch - ('a' - 10);
+                            else
+                                return false;
+                        }
+                        return true;
+                    };
+
+                    // 为什么要做 x & 0xFF 这种操作呢？
+                    // 这是因为 u 是 unsigned
+                    // 类型，一些编译器可能会警告这个转型可能会截断数据。
+                    // 但实际上，配合了范围的检测然后右移之后，可以保证写入的是
+                    // 0~255 内的值。 为了避免一些编译器的警告误判，我们加上 x &
+                    // 0xFF。
+                    // 一般来说，编译器在优化之后，这与操作是会被消去的，不会影响性能。
+                    auto encode_utf8 = [&value](unsigned u) {
+                        if (u <= 0x7F)
+                            value->string->push_back(u & 0xFF);
+                        else if (u <= 0x7FF) {
+                            value->string->push_back(0xC0 | ((u >> 6) & 0xFF));
+                            value->string->push_back(0x80 | (u & 0x3F));
+                        } else if (u <= 0xFFFF) {
+                            value->string->push_back(0xE0 | ((u >> 12) & 0xFF));
+                            value->string->push_back(0x80 | ((u >> 6) & 0x3F));
+                            value->string->push_back(0x80 | (u & 0x3F));
+                        } else {
+                            assert(u <= 0x10FFFF);
+                            value->string->push_back(0xF0 | ((u >> 18) & 0xFF));
+                            value->string->push_back(0x80 | ((u >> 12) & 0x3F));
+                            value->string->push_back(0x80 | ((u >> 6) & 0x3F));
+                            value->string->push_back(0x80 | (u & 0x3F));
+                        }
+                    };
+
+                    if (!parse_hex4(u))
+                        return failed(error_t::invalid_unicode_hex);
+                    if (u >= 0xD800 && u <= 0xDBFF) { /* surrogate pair */
+                        if (*p++ != '\\')
+                            return failed(error_t::invalid_unicode_surrogate);
+                        if (*p++ != 'u')
+                            return failed(error_t::invalid_unicode_surrogate);
+                        if (!parse_hex4(u2))
+                            return failed(error_t::invalid_unicode_hex);
+                        if (u2 < 0xDC00 || u2 > 0xDFFF)
+                            return failed(error_t::invalid_unicode_surrogate);
+                        u = (((u - 0xD800) << 10) | (u2 - 0xDC00)) + 0x10000;
+                    }
+                    encode_utf8(u);
+                    p--; // 与后面 p++ 抵消
+                    break;
+                }
+                default:
+                    delete value->string;
+                    return failed(error_t::invalid_string_escape);
+                }
+                p++;
+                break;
+
+            default:
+                if ((unsigned char)*p < 0x20) {
+                    delete value->string;
+                    return failed(error_t::invalid_string_char);
+                }
+                value->string->push_back(*p);
+                p++;
+                break;
+            }
         }
     }
 };

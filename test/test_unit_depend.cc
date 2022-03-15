@@ -21,6 +21,8 @@ TEST(unitHpp, os_error_t) {
     TEST_OS_PARSE_T("invalid_string_char", invalid_string_char);
     TEST_OS_PARSE_T("miss_quotation_mark", miss_quotation_mark);
     TEST_OS_PARSE_T("invalid_string_escape", invalid_string_escape);
+    TEST_OS_PARSE_T("invalid_unicode_surrogate", invalid_unicode_surrogate);
+    TEST_OS_PARSE_T("invalid_unicode_hex", invalid_unicode_hex);
 
     // unknown type
     std::ostringstream osstring;

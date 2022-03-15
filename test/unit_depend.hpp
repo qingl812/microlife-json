@@ -33,6 +33,12 @@ static std::ostream& operator<<(std::ostream& os,
     case parser::error_t::invalid_string_escape:
         return os << "invalid_string_escape";
 
+    case parser::error_t::invalid_unicode_hex:
+        return os << "invalid_unicode_hex";
+
+    case parser::error_t::invalid_unicode_surrogate:
+        return os << "invalid_unicode_surrogate";
+
     default:
         return os << "unknown parse_t";
     }

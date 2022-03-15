@@ -154,8 +154,7 @@ TEST(parser, number) {
 }
 
 // string 的测试
-#define TEST_STRING(_string)                                                   \
-    TEST_PVALUE(_string, "\"" _string "\"", string, string)
+#define TEST_STRING(expected, json) TEST_PVALUE(expected, json, string, string)
 
 #define TEST_MISS_QUOTATION_MARK(json)                                         \
     TEST_RETURN(json, miss_quotation_mark, null)
@@ -163,10 +162,20 @@ TEST(parser, number) {
 #define TEST_INVALID_STRING_ESCAPE(json)                                       \
     TEST_RETURN(json, invalid_string_escape, null)
 
+#define TEST_INVALID_UNICODE_HEX(json)                                         \
+    TEST_RETURN(json, invalid_unicode_hex, null)
+
+#define TEST_INVALID_UNICODE_SURROGATE(json)                                   \
+    TEST_RETURN(json, invalid_unicode_surrogate, null)
+
 #define TEST_INVALID_STRING_CHAR(json)                                         \
     TEST_RETURN(json, invalid_string_char, null)
 TEST(parser, string) {
-    TEST_STRING("hello");
+    TEST_STRING("hello", R"("hello")");
+    TEST_STRING("\" \\ / \b \f \n \r \t",
+                "\"\\\" \\\\ / \\b \\f \\n \\r \\t\""); // 与下面语句相同
+    TEST_STRING("\" \\ / \b \f \n \r \t", R"("\" \\ / \b \f \n \r \t")");
+    TEST_STRING("Hello\nWorld", R"("Hello\nWorld")");
 
     // 连续多次解析
     microlife::detail::parser parser;
@@ -183,11 +192,42 @@ TEST(parser, string) {
     TEST_MISS_QUOTATION_MARK("\"");
     TEST_MISS_QUOTATION_MARK("\"abc");
 
-    // TEST_INVALID_STRING_ESCAPE("\"\\v\"");
-    // TEST_INVALID_STRING_ESCAPE("\"\\'\"");
-    // TEST_INVALID_STRING_ESCAPE("\"\\0\"");
-    // TEST_INVALID_STRING_ESCAPE("\"\\x12\"");
+    TEST_INVALID_STRING_ESCAPE("\"\\v\"");
+    TEST_INVALID_STRING_ESCAPE("\"\\'\"");
+    TEST_INVALID_STRING_ESCAPE("\"\\0\"");
+    TEST_INVALID_STRING_ESCAPE("\"\\x12\"");
 
-    // TEST_INVALID_STRING_CHAR("\"\x01\"");
-    // TEST_INVALID_STRING_CHAR("\"\x1F\"");
+    TEST_INVALID_STRING_CHAR("\"\x01\"");
+    TEST_INVALID_STRING_CHAR("\"\x1F\"");
+
+    // utf-8
+    TEST_STRING(std::string("Hello") + '\0' + "World", "\"Hello\\u0000World\"");
+    TEST_STRING("\x24", "\"\\u0024\"");         /* Dollar sign U+0024 */
+    TEST_STRING("\xC2\xA2", "\"\\u00A2\"");     /* Cents sign U+00A2 */
+    TEST_STRING("\xE2\x82\xAC", "\"\\u20AC\""); /* Euro sign U+20AC */
+    TEST_STRING("\xF0\x9D\x84\x9E",
+                "\"\\uD834\\uDD1E\""); /* G clef sign U+1D11E */
+    TEST_STRING("\xF0\x9D\x84\x9E",
+                "\"\\ud834\\udd1e\""); /* G clef sign U+1D11E */
+
+    TEST_INVALID_UNICODE_HEX("\"\\u\"");
+    TEST_INVALID_UNICODE_HEX("\"\\u0\"");
+    TEST_INVALID_UNICODE_HEX("\"\\u01\"");
+    TEST_INVALID_UNICODE_HEX("\"\\u012\"");
+    TEST_INVALID_UNICODE_HEX("\"\\u/000\"");
+    TEST_INVALID_UNICODE_HEX("\"\\uG000\"");
+    TEST_INVALID_UNICODE_HEX("\"\\u0/00\"");
+    TEST_INVALID_UNICODE_HEX("\"\\u0G00\"");
+    TEST_INVALID_UNICODE_HEX("\"\\u00/0\"");
+    TEST_INVALID_UNICODE_HEX("\"\\u00G0\"");
+    TEST_INVALID_UNICODE_HEX("\"\\u000/\"");
+    TEST_INVALID_UNICODE_HEX("\"\\u000G\"");
+    TEST_INVALID_UNICODE_HEX("\"\\u 123\"");
+    TEST_INVALID_UNICODE_HEX("\"\\uD800\\u0/00\"");
+
+    TEST_INVALID_UNICODE_SURROGATE("\"\\uD800\"");
+    TEST_INVALID_UNICODE_SURROGATE("\"\\uDBFF\"");
+    TEST_INVALID_UNICODE_SURROGATE("\"\\uD800\\\\\"");
+    TEST_INVALID_UNICODE_SURROGATE("\"\\uD800\\uDBFF\"");
+    TEST_INVALID_UNICODE_SURROGATE("\"\\uD800\\uE000\"");
 }
