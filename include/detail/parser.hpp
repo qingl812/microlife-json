@@ -24,16 +24,17 @@ public:
     // 错误信息
     enum class error_t : uint8_t
     {
-        ok,                    // 无错误
-        expect_value,          // 预期值
-        invalid_value,         // 错误的值
-        root_not_singular,     // 多个值
-        number_too_big,        // 数字过大
-        miss_quotation_mark,   // 缺失右引号
-        invalid_string_escape, // 无效的转义字符
-        invalid_string_char,   // 无效的 string 字符
-        invalid_unicode_hex,   // 无效的16进制编码
-        invalid_unicode_surrogate
+        ok,                          // 无错误
+        expect_value,                // 预期值
+        invalid_value,               // 错误的值
+        root_not_singular,           // 多个值
+        number_too_big,              // 数字过大
+        miss_quotation_mark,         // 缺失右引号
+        invalid_string_escape,       // 无效的转义字符
+        invalid_string_char,         // 无效的 string 字符
+        invalid_unicode_hex,         // 无效的 unicode 16 进制编码
+        invalid_unicode_surrogate,   // 无效的 unicode 代理编码
+        miss_comma_or_square_bracket // 缺失逗号或方括号
     };
 
 public:
@@ -55,7 +56,6 @@ public:
             delete m_value;
     }
 
-    // 传入的字符串一定是以 '/0' 结尾的
     bool parse(const std::string& json) {
         assert(*json.end() == '\0');
 
@@ -141,6 +141,9 @@ private: // private static
 
         case '\0':
             return failed(error_t::expect_value);
+
+        case '[':
+            return parse_array(value);
 
         default:
             parse_number(value);
@@ -339,6 +342,42 @@ private: // private static
                 value->string->push_back(*p);
                 p++;
                 break;
+            }
+        }
+    }
+
+    // 解析一个数组
+    void parse_array(value_s* value) {
+        assert(*m_cur == '[');
+
+        m_cur++;
+        auto array = new std::vector<value_s*>();
+        value->array = array;
+        parse_whitespace();
+        if (*m_cur == ']') {
+            m_cur++;
+            value->type = type_t::array;
+            return;
+        }
+        while (true) {
+            value_s* e = new value_s();
+            parse_value(e);
+            if (m_error != error_t::ok)
+                break;
+            value->array->push_back(e);
+            parse_whitespace();
+            if (*m_cur == ',') {
+                m_cur++;
+                parse_whitespace();
+            } else if (*m_cur == ']') {
+                m_cur++;
+                value->type = type_t::array;
+                return;
+            } else {
+                for (auto i : *array)
+                    delete i;
+                delete array;
+                return failed(error_t::miss_comma_or_square_bracket);
             }
         }
     }

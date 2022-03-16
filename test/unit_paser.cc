@@ -8,12 +8,12 @@ TEST(parser, constructor) {
     delete parser;
 
     parser = new microlife::detail::parser();
-    parser->parse("null");
-    parser->parse("true");
+    ASSERT_TRUE(parser->parse("null"));
+    ASSERT_TRUE(parser->parse("true"));
     delete parser;
 }
 
-#define _TEST_RETURN(_json, _ret, _type)                                       \
+#define _TEST_BASE(_json, _ret, _type)                                         \
     microlife::detail::parser parser;                                          \
     parser.parse(_json);                                                       \
     EXPECT_EQ(microlife::detail::parser::error_t::_ret, parser.m_error);       \
@@ -23,20 +23,20 @@ TEST(parser, constructor) {
 // 以及其 value.type 是否符合预期
 #define TEST_RETURN(_json, _ret, _type)                                        \
     do {                                                                       \
-        _TEST_RETURN(_json, _ret, _type);                                      \
+        _TEST_BASE(_json, _ret, _type);                                        \
     } while (0)
 
 // 带有 VALUE 的测试
 #define TEST_VALUE(_expected, _json, _type, _value_type)                       \
     do {                                                                       \
-        _TEST_RETURN(_json, ok, _type);                                        \
+        _TEST_BASE(_json, ok, _type);                                          \
         EXPECT_EQ(_expected, parser.m_value->_value_type);                     \
     } while (0)
 
 // 带有 指针形式VALUE 的测试
 #define TEST_PVALUE(_expected, _json, _type, _value_type)                      \
     do {                                                                       \
-        _TEST_RETURN(_json, ok, _type);                                        \
+        _TEST_BASE(_json, ok, _type);                                          \
         EXPECT_EQ(_expected, *parser.m_value->_value_type);                    \
     } while (0)
 
@@ -230,4 +230,68 @@ TEST(parser, string) {
     TEST_INVALID_UNICODE_SURROGATE("\"\\uD800\\\\\"");
     TEST_INVALID_UNICODE_SURROGATE("\"\\uD800\\uDBFF\"");
     TEST_INVALID_UNICODE_SURROGATE("\"\\uD800\\uE000\"");
+}
+
+// array 的测试
+#define TEST_MISS_COMMA_OR_SQUARE_BRACKET(json)                                \
+    TEST_RETURN(json, miss_comma_or_square_bracket, null)
+TEST(parser, array) {
+    microlife::detail::parser parser;
+
+    // test 1
+    EXPECT_TRUE(parser.parse("[ ]"));
+    EXPECT_EQ(microlife::detail::parser::error_t::ok, parser.m_error);
+    EXPECT_EQ(microlife::detail::type_t::array, parser.m_value->type);
+    EXPECT_EQ(0, parser.m_value->array->size());
+
+    // test 2
+    EXPECT_TRUE(parser.parse("[ null , false , true , 123 , \"abc\" ]"));
+    EXPECT_EQ(microlife::detail::parser::error_t::ok, parser.m_error);
+    EXPECT_EQ(microlife::detail::type_t::array, parser.m_value->type);
+    EXPECT_EQ(5, parser.m_value->array->size());
+
+    EXPECT_EQ(microlife::detail::type_t::null,
+              parser.m_value->array->at(0)->type);
+
+    EXPECT_EQ(microlife::detail::type_t::boolean,
+              parser.m_value->array->at(1)->type);
+    EXPECT_EQ(false, parser.m_value->array->at(1)->boolean);
+
+    EXPECT_EQ(microlife::detail::type_t::boolean,
+              parser.m_value->array->at(2)->type);
+    EXPECT_EQ(true, parser.m_value->array->at(2)->boolean);
+
+    EXPECT_EQ(microlife::detail::type_t::number,
+              parser.m_value->array->at(3)->type);
+    EXPECT_EQ(123, parser.m_value->array->at(3)->number);
+
+    EXPECT_EQ(microlife::detail::type_t::string,
+              parser.m_value->array->at(4)->type);
+    EXPECT_EQ("abc", *parser.m_value->array->at(4)->string);
+
+    // test 3
+    EXPECT_TRUE(parser.parse("[ [ ] , [ 0 ] , [ 0 , 1 ] , [ 0 , 1 , 2 ] ]"));
+    EXPECT_EQ(microlife::detail::parser::error_t::ok, parser.m_error);
+    EXPECT_EQ(microlife::detail::type_t::array, parser.m_value->type);
+    EXPECT_EQ(4, parser.m_value->array->size());
+
+    for (int i = 0; i < 3; i++) {
+        EXPECT_EQ(microlife::detail::type_t::array,
+                  parser.m_value->array->at(i)->type);
+        EXPECT_EQ(i, parser.m_value->array->at(i)->array->size());
+
+        for (int j = 0; j < i; j++) {
+            EXPECT_EQ(microlife::detail::type_t::array,
+                      parser.m_value->array->at(i)->type);
+            EXPECT_EQ(j, parser.m_value->array->at(i)->array->at(j)->number);
+        }
+    }
+
+    // failed
+    TEST_MISS_COMMA_OR_SQUARE_BRACKET("[1");
+    TEST_MISS_COMMA_OR_SQUARE_BRACKET("[1}");
+    TEST_MISS_COMMA_OR_SQUARE_BRACKET("[1 2");
+    TEST_MISS_COMMA_OR_SQUARE_BRACKET("[[]");
+
+    TEST_INVALID("[trua]");
 }
