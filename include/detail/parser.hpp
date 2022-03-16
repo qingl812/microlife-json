@@ -24,17 +24,20 @@ public:
     // 错误信息
     enum class error_t : uint8_t
     {
-        ok,                          // 无错误
-        expect_value,                // 预期值
-        invalid_value,               // 错误的值
-        root_not_singular,           // 多个值
-        number_too_big,              // 数字过大
-        miss_quotation_mark,         // 缺失右引号
-        invalid_string_escape,       // 无效的转义字符
-        invalid_string_char,         // 无效的 string 字符
-        invalid_unicode_hex,         // 无效的 unicode 16 进制编码
-        invalid_unicode_surrogate,   // 无效的 unicode 代理编码
-        miss_comma_or_square_bracket // 缺失逗号或方括号
+        ok,                           // 无错误
+        expect_value,                 // 预期值
+        invalid_value,                // 错误的值
+        root_not_singular,            // 多个值
+        number_too_big,               // 数字过大
+        miss_quotation_mark,          // 缺失右引号
+        invalid_string_escape,        // 无效的转义字符
+        invalid_string_char,          // 无效的 string 字符
+        invalid_unicode_hex,          // 无效的 unicode 16 进制编码
+        invalid_unicode_surrogate,    // 无效的 unicode 代理编码
+        miss_comma_or_square_bracket, // 缺失逗号或方括号
+        miss_key,                     // 缺失键值
+        miss_colon,                   // 缺失冒号
+        miss_comma_or_curly_bracket   // 缺失逗号或大括号
     };
 
 public:
@@ -136,8 +139,7 @@ private: // private static
             break;
 
         case '\"':
-            parse_string(value);
-            break;
+            return parse_string(value);
 
         case '\0':
             return failed(error_t::expect_value);
@@ -145,10 +147,11 @@ private: // private static
         case '[':
             return parse_array(value);
 
+        case '{':
+            return parse_object(value);
+
         default:
-            parse_number(value);
-            break;
-            // return parse_t::invalid_value;
+            return parse_number(value);
         }
     }
 
@@ -351,19 +354,29 @@ private: // private static
         assert(*m_cur == '[');
 
         m_cur++;
-        auto array = new std::vector<value_s*>();
-        value->array = array;
+        value->type = type_t::array;
+        value->array = new std::vector<value_s*>();
+
+        auto array = value->array;
+
         parse_whitespace();
         if (*m_cur == ']') {
             m_cur++;
-            value->type = type_t::array;
             return;
         }
         while (true) {
             value_s* e = new value_s();
+            auto func_failed = [&](const error_t& error) {
+                delete e;
+                delete array;
+                value->type = type_t::null;
+                return failed(error);
+            };
+
             parse_value(e);
             if (m_error != error_t::ok)
-                break;
+                return func_failed(m_error);
+
             value->array->push_back(e);
             parse_whitespace();
             if (*m_cur == ',') {
@@ -371,14 +384,66 @@ private: // private static
                 parse_whitespace();
             } else if (*m_cur == ']') {
                 m_cur++;
-                value->type = type_t::array;
                 return;
-            } else {
-                for (auto i : *array)
-                    delete i;
-                delete array;
-                return failed(error_t::miss_comma_or_square_bracket);
-            }
+            } else
+                return func_failed(error_t::miss_comma_or_square_bracket);
+        }
+    }
+
+    void parse_object(value_s* value) {
+        assert(*m_cur == '{');
+
+        m_cur++;
+        value->type = type_t::object;
+        value->object = new value_s::object_t();
+
+        auto object = value->object;
+
+        parse_whitespace();
+        if (*m_cur == '}') {
+            m_cur++;
+            return;
+        }
+
+        while (true) {
+            value_s *key = new value_s(), *val = new value_s();
+            auto func_failed = [&](const error_t& error) {
+                delete key;
+                delete val;
+                delete object;
+                value->type = type_t::null;
+                return failed(error);
+            };
+
+            // parse key
+            if (*m_cur != '"')
+                return func_failed(error_t::miss_key);
+            parse_value(key);
+            if (m_error != error_t::ok)
+                return func_failed(m_error);
+
+            // parse colon
+            parse_whitespace();
+            if (*m_cur != ':')
+                return func_failed(error_t::miss_colon);
+            m_cur++;
+            parse_whitespace();
+
+            // parse value
+            parse_value(val);
+            if (m_error != error_t::ok)
+                return func_failed(m_error);
+            assert(key->type == type_t::string);
+            object->insert(value_s::object_t::value_type(*key->string, val));
+            parse_whitespace();
+            if (*m_cur == ',') {
+                m_cur++;
+                parse_whitespace();
+            } else if (*m_cur == '}') {
+                m_cur++;
+                return;
+            } else
+                return func_failed(error_t::miss_comma_or_curly_bracket);
         }
     }
 };

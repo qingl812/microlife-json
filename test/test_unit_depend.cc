@@ -23,6 +23,12 @@ TEST(unitHpp, os_error_t) {
     TEST_OS_PARSE_T("invalid_string_escape", invalid_string_escape);
     TEST_OS_PARSE_T("invalid_unicode_surrogate", invalid_unicode_surrogate);
     TEST_OS_PARSE_T("invalid_unicode_hex", invalid_unicode_hex);
+    TEST_OS_PARSE_T("miss_comma_or_square_bracket",
+                    miss_comma_or_square_bracket);
+    TEST_OS_PARSE_T("miss_key", miss_key);
+    TEST_OS_PARSE_T("miss_colon", miss_colon);
+    TEST_OS_PARSE_T("miss_key", miss_key);
+    TEST_OS_PARSE_T("miss_comma_or_curly_bracket", miss_comma_or_curly_bracket);
 
     // unknown type
     std::ostringstream osstring;

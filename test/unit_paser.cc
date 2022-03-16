@@ -295,3 +295,108 @@ TEST(parser, array) {
 
     TEST_INVALID("[trua]");
 }
+
+// object 的测试
+#define TEST_MISS_KEY(json) TEST_RETURN(json, miss_key, null)
+#define TEST_MISS_COLON(json) TEST_RETURN(json, miss_colon, null)
+#define TEST_MISS_COMMA_OR_CURLY_BRACKET(json)                                 \
+    TEST_RETURN(json, miss_comma_or_curly_bracket, null)
+TEST(parser, object) {
+    microlife::detail::parser parser;
+    std::string json;
+    microlife::detail::value_s* value;
+    microlife::detail::value_s::object_t* object;
+
+    // test 1
+    EXPECT_TRUE(parser.parse(" { } "));
+    EXPECT_EQ(microlife::detail::parser::error_t::ok, parser.m_error);
+    EXPECT_EQ(microlife::detail::type_t::object, parser.m_value->type);
+    EXPECT_EQ(0, parser.m_value->object->size());
+
+    // test 2
+    EXPECT_TRUE(parser.parse(" { \"o\" : { } } "));
+    EXPECT_EQ(microlife::detail::parser::error_t::ok, parser.m_error);
+    EXPECT_EQ(microlife::detail::type_t::object, parser.m_value->type);
+    EXPECT_EQ(1, parser.m_value->object->size());
+
+    // test 3
+    json =
+        " { "
+        "\"n\" : null , "
+        "\"f\" : false , "
+        "\"t\" : true , "
+        "\"i\" : 123 , "
+        "\"s\" : \"abc\", "
+        "\"a\" : [ 1 , 2 , 3 ] , "
+        "\"o\" : { \"1\" : 1 , \"2\" : 2 , \"3\" : 3 } "
+        " } ";
+    EXPECT_TRUE(parser.parse(json));
+    EXPECT_EQ(microlife::detail::parser::error_t::ok, parser.m_error);
+    EXPECT_EQ(microlife::detail::type_t::object, parser.m_value->type);
+    EXPECT_EQ(7, parser.m_value->object->size());
+    object = parser.m_value->object;
+
+    EXPECT_EQ(1, object->count("n"));
+    EXPECT_EQ(microlife::detail::type_t::null, object->at("n")->type);
+
+    EXPECT_EQ(1, object->count("f"));
+    value = object->at("f");
+    EXPECT_EQ(microlife::detail::type_t::boolean, value->type);
+    EXPECT_EQ(false, value->boolean);
+
+    EXPECT_EQ(1, object->count("t"));
+    value = object->at("t");
+    EXPECT_EQ(microlife::detail::type_t::boolean, value->type);
+    EXPECT_EQ(true, value->boolean);
+
+    EXPECT_EQ(1, object->count("i"));
+    value = object->at("i");
+    EXPECT_EQ(microlife::detail::type_t::number, value->type);
+    EXPECT_EQ(123, value->number);
+
+    EXPECT_EQ(1, object->count("s"));
+    value = object->at("s");
+    EXPECT_EQ(microlife::detail::type_t::string, value->type);
+    EXPECT_EQ("abc", *value->string);
+
+    EXPECT_EQ(1, object->count("a"));
+    value = object->at("a");
+    EXPECT_EQ(microlife::detail::type_t::array, value->type);
+    EXPECT_EQ(3, value->array->size());
+    for (int i = 0; i < 3; i++) {
+        EXPECT_EQ(microlife::detail::type_t::number, value->array->at(i)->type);
+        EXPECT_EQ(i + 1, value->array->at(i)->number);
+    }
+
+    EXPECT_EQ(1, object->count("o"));
+    value = object->at("o");
+    EXPECT_EQ(microlife::detail::type_t::object, value->type);
+    EXPECT_EQ(3, value->object->size());
+    for (int i = 1; i < 4; i++) {
+        EXPECT_EQ(1, value->object->count(std::to_string(i)));
+        auto val = value->object->at(std::to_string(i));
+        EXPECT_EQ(microlife::detail::type_t::number, val->type);
+        EXPECT_EQ(i, val->number);
+    }
+
+    // failed
+    TEST_MISS_KEY("{:1,");
+    TEST_MISS_KEY("{1:1,");
+    TEST_MISS_KEY("{true:1,");
+    TEST_MISS_KEY("{false:1,");
+    TEST_MISS_KEY("{null:1,");
+    TEST_MISS_KEY("{[]:1,");
+    TEST_MISS_KEY("{{}:1,");
+    TEST_MISS_KEY("{\"a\":1,");
+
+    TEST_MISS_COLON("{\"a\"}");
+    TEST_MISS_COLON("{\"a\",\"b\"}");
+
+    TEST_MISS_COMMA_OR_CURLY_BRACKET("{\"a\":1");
+    TEST_MISS_COMMA_OR_CURLY_BRACKET("{\"a\":1]");
+    TEST_MISS_COMMA_OR_CURLY_BRACKET("{\"a\":1 \"b\"");
+    TEST_MISS_COMMA_OR_CURLY_BRACKET("{\"a\":{}");
+
+    TEST_MISS_QUOTATION_MARK("{\"a: 1");
+    TEST_MISS_QUOTATION_MARK("{\"a\": \"1");
+}

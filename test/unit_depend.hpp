@@ -39,6 +39,18 @@ static std::ostream& operator<<(std::ostream& os,
     case parser::error_t::invalid_unicode_surrogate:
         return os << "invalid_unicode_surrogate";
 
+    case parser::error_t::miss_comma_or_square_bracket:
+        return os << "miss_comma_or_square_bracket";
+
+    case parser::error_t::miss_key:
+        return os << "miss_key";
+
+    case parser::error_t::miss_colon:
+        return os << "miss_colon";
+
+    case parser::error_t::miss_comma_or_curly_bracket:
+        return os << "miss_comma_or_curly_bracket";
+
     default:
         return os << "unknown parse_t";
     }

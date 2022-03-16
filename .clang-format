@@ -1,4 +1,5 @@
 ---
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html
 Language: Cpp
 # BasedOnStyle:  LLVM
 # 访问说明符(public、private等)的偏移
@@ -26,7 +27,8 @@ AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
-AlwaysBreakBeforeMultilineStrings: false
+# 如果为真，则始终在多行字符串文字之前中断。
+AlwaysBreakBeforeMultilineStrings: true
 # 总是在template声明后换行
 AlwaysBreakTemplateDeclarations: true
 AttributeMacros:
