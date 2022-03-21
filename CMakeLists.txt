@@ -4,15 +4,11 @@ project(microlife-json)
 
 set(
   PROJECT_SOURCES
-  "include/detail/basic_json.hpp"
-  "include/detail/context_s.hpp"
-  "include/detail/parser.hpp"
-  "include/detail/type_t.hpp"
-  "include/detail/value_s.hpp"
+  "include/detail/value_t.hpp"
+  "include/detail/json_t.hpp"
+  "include/detail/lexer.hpp"
 
-  "test/unit_depend.hpp"
-  "test/test_unit_depend.cc"
-  "test/unit_paser.cc"
+  "test/unit_lexer.cc"
 )
 include_directories(include)
 
