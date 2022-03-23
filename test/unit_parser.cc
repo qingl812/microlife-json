@@ -1,6 +1,6 @@
 #include "detail/parser.hpp"
 
-#include "tools/unit_cout.hpp" // cout << value_t
+#include <gtest/gtest.h>
 
 #define TEST_PARSER_PARSE_BASE(_json, _judge, _type)                           \
     do {                                                                       \
@@ -51,7 +51,7 @@ TEST(parser, parse) {
     TEST_PARSER_PARSE_FALSE("{\"a\"null}");
     TEST_PARSER_PARSE_FALSE("{,\"a\":null}");
     TEST_PARSER_PARSE_FALSE("{\"a\":null,}");
-    TEST_PARSER_PARSE_FALSE("{[true]:null,}");
+    TEST_PARSER_PARSE_FALSE("{[true]:null}");
 
     TEST_PARSER_PARSE_FALSE("0123");
     TEST_PARSER_PARSE_FALSE("0x0");

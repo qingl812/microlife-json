@@ -1,4 +1,8 @@
-#include "unit_cout.hpp"
+#include "detail/value_t.hpp"
+
+#include <gtest/gtest.h>
+#include <iostream>
+#include <sstream>
 
 // 测试 value_t 是否可以 cout
 #define TEST_OS(expected, target)                                              \

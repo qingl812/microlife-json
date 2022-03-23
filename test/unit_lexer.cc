@@ -1,7 +1,5 @@
 #include "detail/lexer.hpp"
 
-#include "tools/unit_cout.hpp" // cout << value_t
-
 #include <gtest/gtest.h>
 
 // 测试 lexer 用的宏

@@ -9,11 +9,9 @@ set(
   "include/detail/lexer.hpp"
   "include/detail/parser.hpp"
 
-  "test/tools/unit_cout.hpp"
-  "test/tools/test_unit_cout.cc"
-
-  "test/unit_lexer.cc"
+  "test/unit_value_t.cc"
   "test/unit_json_t.cc"
+  "test/unit_lexer.cc"
   "test/unit_parser.cc"
 )
 include_directories(include)
