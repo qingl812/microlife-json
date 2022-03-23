@@ -1,5 +1,7 @@
 #include "detail/lexer.hpp"
 
+#include "tools/unit_cout.hpp" // cout << value_t
+
 #include <gtest/gtest.h>
 
 // 测试 lexer 用的宏
@@ -27,13 +29,11 @@ TEST(lexer, null) {
     TEST_LEXER_NULL("\nnull\t");
 
     // error
-    TEST_LEXER_ERROR(" nulll ");
     TEST_LEXER_ERROR(" nu ll ");
     TEST_LEXER_ERROR("n");
     TEST_LEXER_ERROR("nul");
     TEST_LEXER_ERROR("unull");
     TEST_LEXER_ERROR("nnull");
-    TEST_LEXER_ERROR("nulll");
 }
 
 // test boolean
@@ -52,11 +52,9 @@ TEST(lexer, boolean) {
     TEST_LEXER_FALSE("\nfalse\t");
 
     // error
-    TEST_LEXER_ERROR(" truee ");
     TEST_LEXER_ERROR(" tre ");
     TEST_LEXER_ERROR(" tru ");
     TEST_LEXER_ERROR(" rue ");
-    TEST_LEXER_ERROR(" falsee ");
     TEST_LEXER_ERROR("faase");
     TEST_LEXER_ERROR(" fa ");
 }
@@ -167,10 +165,6 @@ TEST(lexer, number) {
     TEST_LEXER_ERROR("nan");
     TEST_LEXER_ERROR("+0e");
     TEST_LEXER_ERROR("1E");
-
-    TEST_LEXER_ERROR("0123");
-    TEST_LEXER_ERROR("0x0");
-    TEST_LEXER_ERROR("0x123");
 
     // 边界测试
     // https://en.wikipedia.org/wiki/Double-precision_floating-point_format#Double-precision_examples

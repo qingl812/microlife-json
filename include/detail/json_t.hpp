@@ -31,6 +31,10 @@ protected:
         json_value(boolean_t v) : boolean(v) {}
         json_value(number_t v) : number(v) {}
 
+        json_value(string_t* value) : string(value) {}
+        json_value(object_t* value) : object(value) {}
+        json_value(array_t* value) : array(value) {}
+
         json_value(string_t&& value) : string(new string_t(std::move(value))) {}
         json_value(object_t&& value) : object(new object_t(std::move(value))) {}
         json_value(array_t&& value) : array(new array_t(std::move(value))) {}
@@ -45,7 +49,7 @@ protected:
                     i.second->m_value.destroy(i.second->m_type);
                 delete object;
             } else if (t == value_t::string) {
-                delete object;
+                delete string;
             }
         }
     };
@@ -67,14 +71,30 @@ public:
 
     json_t(object_t&& v) : m_type(value_t::object), m_value(std::move(v)) {}
 
-    json_t(json_t&& other) noexcept
-        : m_type(std::move(other.m_type)), m_value(std::move(other.m_value)) {}
+    json_t(string_t* v) : m_type(value_t::string), m_value(v) {}
+
+    json_t(array_t* v) : m_type(value_t::array), m_value(v) {}
+
+    json_t(object_t* v) : m_type(value_t::object), m_value(v) {}
+
+    json_t(json_t&& other) noexcept {
+        m_type = other.m_type;
+        m_value = other.m_value;
+
+        other.m_type = value_t::null;
+        other.m_value = {};
+    }
 
     virtual ~json_t() { m_value.destroy(m_type); }
 
     json_t& operator=(json_t&& other) {
-        m_type = std::move(other.m_type);
-        m_value = std::move(other.m_value);
+        m_value.destroy(m_type);
+
+        m_type = other.m_type;
+        m_value = other.m_value;
+
+        other.m_type = value_t::null;
+        other.m_value = {};
         return *this;
     }
 

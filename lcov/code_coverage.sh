@@ -7,6 +7,10 @@ log="lcov.log"
 build="out"
 html="html"
 
+if [ -d ${build}/CMakeFiles ]; then
+  rm -rf ${build}/CMakeFiles
+fi
+
 # cmake
 cmake -S . -B ${build}
 cmake --build ${build}

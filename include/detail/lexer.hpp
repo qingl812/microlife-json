@@ -168,7 +168,7 @@ private:
             literal_text++;
         }
 
-        return is_end() ? return_type : token_t::parse_error;
+        return return_type;
     }
 
     // 解析 string
@@ -180,9 +180,10 @@ private:
             m_cur++;
             switch (*m_cur) {
             case '\0':
-                return token_t::parse_error;
+                return token_t::parse_error; // 缺失右引号 '"'
 
             case '\"':
+                m_cur++;
                 return token_t::value_string;
 
             case '\\': {
@@ -266,6 +267,7 @@ private:
                     return token_t::parse_error;
                 }
                 break;
+            }
 
             default:
                 if ((unsigned char)*m_cur < 0x20) {
@@ -273,7 +275,6 @@ private:
                 }
                 m_buffer.push_back(*m_cur);
                 break;
-            }
             }
         }
     }
@@ -338,7 +339,7 @@ private:
         }
 
         m_cur = p;
-        return is_end() ? token_t::value_number : token_t::parse_error;
+        return token_t::value_number;
     }
 
 private:
@@ -346,8 +347,6 @@ private:
         return *m_cur == ' ' || *m_cur == '\t' || *m_cur == '\n' ||
                *m_cur == '\r';
     }
-
-    bool is_end() { return is_whitespace() || *m_cur == '\0'; }
 };
 } // namespace detail
 } // namespace microlife
