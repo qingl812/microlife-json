@@ -4,15 +4,7 @@ project(microlife-json)
 
 set(
   PROJECT_SOURCES
-  "include/detail/value_t.hpp"
-  "include/detail/json_t.hpp"
-  "include/detail/lexer.hpp"
-  "include/detail/parser.hpp"
-
-  "test/unit_value_t.cc"
-  "test/unit_json_t.cc"
-  "test/unit_lexer.cc"
-  "test/unit_parser.cc"
+  "microlife/hello.cpp"
 )
 include_directories(include)
 
@@ -21,7 +13,8 @@ set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} --coverage")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 
 # GoogleTest requires at least C++11
-set(CMAKE_CXX_STANDARD 11)
+# json 项目模板部分需要支持 C++17
+set(CMAKE_CXX_STANDARD 17)
 
 include(FetchContent)
 FetchContent_Declare(
