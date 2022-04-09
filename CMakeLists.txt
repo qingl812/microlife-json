@@ -7,8 +7,16 @@ set(CMAKE_CXX_FLAGS "-g -O0 -Wall -coverage")
 
 set(
   PROJECT_SOURCES
-  "microlife/hello.cpp"
+  "include/microlife/detail/value_t.h"
+  "include/microlife/detail/basic_json.h"
+  "include/microlife/detail/lexer.h"
+  
+  "microlife/detail/lexer.cpp"
+
+  "test/unit_lexer.cpp"
 )
+
+include_directories("./include")
 
 # gtest
 include(FetchContent)
