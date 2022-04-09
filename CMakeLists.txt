@@ -1,21 +1,16 @@
 cmake_minimum_required(VERSION 3.16.3)
-
 project(microlife-json)
+
+# Set the compiler options
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "-g -O0 -Wall -coverage")
 
 set(
   PROJECT_SOURCES
   "microlife/hello.cpp"
 )
-include_directories(include)
 
-# gcov
-set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} --coverage")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
-
-# GoogleTest requires at least C++11
-# json 项目模板部分需要支持 C++17
-set(CMAKE_CXX_STANDARD 17)
-
+# gtest
 include(FetchContent)
 FetchContent_Declare(
   googletest
@@ -34,8 +29,5 @@ target_link_libraries(
   gtest_main
 )
 
-
 include(GoogleTest)
 gtest_discover_tests(${PROJECT_NAME})
-
-add_definitions(-Wall) # 允许发出 GCC 能够提供的所有有用的警告
