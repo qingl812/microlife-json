@@ -10,6 +10,7 @@ set(
   "include/microlife/detail/value_t.h"
   "include/microlife/detail/basic_json.h"
   "include/microlife/detail/lexer.h"
+  "include/microlife/json.h"
 
   "include/microlife/detail/macro_scope.h"
   "include/microlife/detail/macro_unscope.h"
@@ -22,6 +23,8 @@ set(
   "test/unit_lexer.cpp"
   "test/unit_basic_json.cpp"
   "test/unit_parser.cpp"
+
+  "test/microlife_json.cpp"
 )
 
 include_directories("./include")
