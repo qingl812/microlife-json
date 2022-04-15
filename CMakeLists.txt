@@ -16,10 +16,12 @@ set(
   
   "microlife/detail/lexer.cpp"
   "microlife/detail/basic_json.cpp"
+  "microlife/detail/parser.cpp"
 
   # unit test
   "test/unit_lexer.cpp"
   "test/unit_basic_json.cpp"
+  "test/unit_parser.cpp"
 )
 
 include_directories("./include")
