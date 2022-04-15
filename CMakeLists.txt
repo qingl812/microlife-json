@@ -10,10 +10,16 @@ set(
   "include/microlife/detail/value_t.h"
   "include/microlife/detail/basic_json.h"
   "include/microlife/detail/lexer.h"
+
+  "include/microlife/detail/macro_scope.h"
+  "include/microlife/detail/macro_unscope.h"
   
   "microlife/detail/lexer.cpp"
+  "microlife/detail/basic_json.cpp"
 
+  # unit test
   "test/unit_lexer.cpp"
+  "test/unit_basic_json.cpp"
 )
 
 include_directories("./include")
