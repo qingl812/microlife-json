@@ -61,10 +61,10 @@ basic_json::json_value::json_value(value_t t) {
         object = nullptr;
         break;
 
-    default:
+        // default:
         // 在此之前，应当遍历 value_t 中所有值，不应执行带此处
-        assert(false);
-        break;
+        // assert(false);
+        // break;
     }
 }
 
