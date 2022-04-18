@@ -70,6 +70,8 @@ public:
     basic_json(boolean_t v) : m_type(value_t::boolean), m_value(v) {}
     basic_json(number_t v) : m_type(value_t::number), m_value(v) {}
     basic_json(int v) : m_type(value_t::number), m_value(v) {}
+    basic_json(const char* v)
+        : m_type(value_t::string), m_value(std::move(string_t(v))) {}
 
     // 拷贝构造函数
     basic_json(const string_t& v) : m_type(value_t::string), m_value(v) {}
@@ -192,6 +194,8 @@ public:
 
     // get a string representation of a JSON value (serialize)
     string_t dump() const;
+    // parse a string into a JSON value (deserialize)
+    static basic_json parse(const string_t&);
 
 public:
     // 赋值函数
@@ -216,13 +220,21 @@ public:
     }
 
     bool operator==(const basic_json& other) const {
-        if (this->m_type != other.m_type)
-            return false;
-        return this->dump() == other.dump();
+        return compare(*this, other) == 0;
     }
+
+    // left == right, return 0
+    // left < right, return -1
+    // left > right, return 1
+    static int8_t compare(const basic_json& left, const basic_json& right);
 
 private:
     json_value deep_copy() const;
 };
+
+// cout baisc_json
+inline std::ostream& operator<<(std::ostream& os, const basic_json& type) {
+    return os << type.dump();
+}
 } // namespace detail
 } // namespace microlife

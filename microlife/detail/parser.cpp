@@ -42,11 +42,6 @@ void parser::assert_token_is_value(const token_t& token_is_value) {
 
 basic_json* parser::basic_parse(const string_t& str) {
     // init
-    // m_lexer.init(str.begin(), str.end());
-    // token_t t;
-    // return parse_new(&t);
-
-    // init
     m_lexer.init(str.begin(), str.end());
     clear();
 
@@ -98,7 +93,7 @@ basic_json* parser::basic_parse(const string_t& str) {
 
                     if (temp_a.second) {
                         assert_token_is_value(temp_a.first);
-                        array.push_back(temp_a.second);
+                        array.push_back(std::move(*temp_a.second));
 
                         if (temp_b.first == token_t::begin_array)
                             break; // 解析成功
@@ -150,8 +145,9 @@ basic_json* parser::basic_parse(const string_t& str) {
                         assert_token_is_value(temp_a.first);
                         assert(temp_c.second->is_string());
 
-                        object.insert(std::make_pair(
-                            temp_c.second->get<string_t&>(), temp_a.second));
+                        object.insert(
+                            std::make_pair(temp_c.second->get<string_t&>(),
+                                           std::move(*temp_a.second)));
                         delete temp_c.second;
 
                         if (temp_d.first == token_t::begin_object)
@@ -207,9 +203,9 @@ basic_json* parser::basic_parse(const string_t& str) {
             json = nullptr;
             break;
 
-            // default:
-            //     // 不可能执行到的语句，因为case已经遍历了 token_t
-            //     中所有值 return nullptr;
+        default:
+            assert(false);
+            break;
         }
 
         if (token != token_t::begin_array && token != token_t::begin_object &&

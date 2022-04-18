@@ -1,6 +1,9 @@
 #include "microlife/detail/basic_json.h"
+#include "microlife/detail/parser.h"
 
+#include <algorithm> // sort
 #include <assert.h>
+#include <string.h> // strcmp
 
 using namespace microlife;
 using namespace microlife::detail;
@@ -61,10 +64,9 @@ basic_json::json_value::json_value(value_t t) {
         object = nullptr;
         break;
 
-        // default:
-        // 在此之前，应当遍历 value_t 中所有值，不应执行带此处
-        // assert(false);
-        // break;
+    default:
+        assert(false);
+        break;
     }
 }
 
@@ -91,8 +93,14 @@ basic_json::string_t basic_json::dump() const {
         else
             return "false";
 
-    case value_t::number:
-        return std::to_string(m_value.number);
+    case value_t::number: {
+        string_t ret = std::to_string(m_value.number);
+        while (ret.back() == '0')
+            ret.pop_back();
+        if (ret.back() == '.')
+            ret.pop_back();
+        return ret;
+    }
 
     case value_t::string:
         return '\"' + *m_value.string + '\"';
@@ -100,11 +108,13 @@ basic_json::string_t basic_json::dump() const {
     case value_t::array: {
         string_t ret;
         ret.push_back('[');
-        for (const auto& i : *m_value.array) {
-            ret += i.dump();
-            ret.push_back(',');
+        if (m_value.array->size() > 0) {
+            for (auto& i : *m_value.array) {
+                ret += i.dump();
+                ret.push_back(',');
+            }
+            ret.pop_back();
         }
-        ret.pop_back();
         ret.push_back(']');
         return ret;
     }
@@ -112,17 +122,94 @@ basic_json::string_t basic_json::dump() const {
     case value_t::object: {
         string_t ret;
         ret.push_back('{');
-        for (const auto& i : *m_value.object) {
-            ret += '\"' + i.first + '\"' + ':';
-            ret += i.second.dump();
-            ret.push_back(',');
+        if (m_value.object->size() > 0) {
+            for (const auto& i : *m_value.object) {
+                ret += '\"' + i.first + '\"' + ':';
+                ret += i.second.dump();
+                ret.push_back(',');
+            }
+            ret.pop_back();
         }
-        ret.pop_back();
         ret.push_back('}');
         return ret;
     }
 
     default:
         assert(false);
+        return "";
+    }
+}
+
+basic_json basic_json::parse(const string_t& str) {
+    basic_json j;
+    parser p;
+    if (p.parse(str, j)) {
+        return j;
+    }
+    return basic_json();
+}
+
+/***
+ * @brief compare baisc_json
+ * @details
+ * left == right, return 0
+ * left < right, return -1
+ * left > right, return 1
+ * @author qingl
+ * @date 2022_04_18
+ */
+int8_t basic_json::compare(const basic_json& left, const basic_json& right) {
+    auto diff = int8_t(left.m_type) - int8_t(right.m_type);
+    if (diff != 0) {
+        return diff > 0 ? 1 : -1;
+    }
+
+    const auto& left_v = left.m_value;
+    const auto& right_v = right.m_value;
+    switch (left.m_type) {
+    case value_t::null:
+        return 0;
+
+    case value_t::boolean:
+        return left_v.boolean == right_v.boolean ? 0
+                                                 : (left_v.boolean ? 1 : -1);
+
+    case value_t::number:
+        return left_v.number == right_v.number
+                   ? 0
+                   : (left_v.number > right_v.number ? 1 : -1);
+
+    case value_t::string:
+        return int8_t(strcmp(left_v.string->c_str(), right_v.string->c_str()));
+
+    case value_t::array: {
+        int diff = left_v.array->size() - right_v.array->size();
+        if (diff != 0) {
+            return diff > 0 ? 1 : -1;
+        }
+
+        auto a = *left_v.array;
+        auto b = *right_v.array;
+        auto cmp = [](const basic_json& a, const basic_json& b) {
+            return compare(a, b) <= 0;
+        };
+        std::sort(a.begin(), a.end(), cmp);
+        std::sort(b.begin(), b.end(), cmp);
+        // compare
+        for (size_t i = 0; i < a.size(); i++) {
+            auto diff = compare(a[i], b[i]);
+            if (diff != 0) {
+                return diff;
+            }
+        }
+        return 0;
+    }
+
+    case value_t::object:
+        return *left_v.object == *right_v.object;
+
+    default:
+        assert(false);
+        break;
     }
 }

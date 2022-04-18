@@ -23,6 +23,8 @@ set(
   "test/unit_lexer.cpp"
   "test/unit_basic_json.cpp"
   "test/unit_parser.cpp"
+  "test/unit_basic_json_dump.cpp"
+  "test/unit_baisc_json_parser.cpp"
 
   "test/microlife_json.cpp"
 )

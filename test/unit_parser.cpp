@@ -17,12 +17,6 @@
     TEST_PARSER_PARSE_BASE(_json, EXPECT_FALSE, null)
 
 TEST(parser, parse) {
-    TEST_PARSER_PARSE_TRUE(null, "null");
-    TEST_PARSER_PARSE_TRUE(boolean, "true");
-    TEST_PARSER_PARSE_TRUE(boolean, "false");
-    TEST_PARSER_PARSE_TRUE(number, "123");
-    TEST_PARSER_PARSE_TRUE(string, "\"hello\"");
-
     // false
     TEST_PARSER_PARSE_FALSE("nulll");
     TEST_PARSER_PARSE_FALSE("t");
@@ -58,6 +52,12 @@ TEST(parser, parse) {
     TEST_PARSER_PARSE_FALSE("0x123");
 
     // true
+    TEST_PARSER_PARSE_TRUE(null, "null");
+    TEST_PARSER_PARSE_TRUE(boolean, "true");
+    TEST_PARSER_PARSE_TRUE(boolean, "false");
+    TEST_PARSER_PARSE_TRUE(number, "123");
+    TEST_PARSER_PARSE_TRUE(string, "\"hello\"");
+
     TEST_PARSER_PARSE_TRUE(array, "[123,true,false]");
     TEST_PARSER_PARSE_TRUE(array, "[123,true,[false]]");
     TEST_PARSER_PARSE_TRUE(array, "[123,[[true]],[false]]");
