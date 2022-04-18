@@ -22,7 +22,7 @@ function lcov_run_no_error() {
 # run lcov
 print_info "Generate code coverage report..." >>${log_file}
 lcov_run_no_error "lcov -c -d ${gcov_dir} -o ${coverage_info}"
-lcov_run_no_error "lcov -r ${coverage_info} */googletest/* test/* */c++/* -o ${coverageFiltered_info}"
+lcov_run_no_error "lcov -r ${coverage_info} /*3rdparty/* */googletest/* test/* */c++/* -o ${coverageFiltered_info}"
 lcov_run_no_error "genhtml -o ${coverage_html_dir} ${coverageFiltered_info}"
 
 # print success
