@@ -20,8 +20,8 @@ public:
     using boolean_t = bool;
     using number_t = double;
     using string_t = std::string;
-    using array_t = std::vector<basic_json*>;
-    using object_t = std::map<std::string, basic_json*>;
+    using array_t = std::vector<basic_json>;
+    using object_t = std::map<string_t, basic_json>;
 
     using value_t = detail::value_t;
 
@@ -85,10 +85,8 @@ public:
     basic_json(value_t v) : m_type(v), m_value(v) {}
 
     // 构造函数
-    basic_json(const basic_json& v) {
-        m_type = v.m_type;
-        m_value = v.deep_copy();
-    }
+    basic_json(const basic_json& v)
+        : m_type(v.m_type), m_value(v.deep_copy()) {}
 
     basic_json(basic_json&& other) noexcept {
         m_type = other.m_type;
@@ -97,36 +95,15 @@ public:
         other.m_type = value_t::null;
     }
 
-    basic_json(size_t cnt, const basic_json& val) {
-        m_type = value_t::array;
-        m_value.array = new array_t();
-
+    basic_json(size_t cnt, const basic_json& val)
+        : m_type(value_t::array), m_value(value_t::array) {
         while (cnt--) {
-            m_value.array->push_back(new basic_json(val));
+            m_value.array->push_back(val);
         }
     }
 
     // 析构函数
     virtual ~basic_json() { m_value.destroy(m_type); }
-
-    // 赋值函数
-    basic_json& operator=(const basic_json& v) {
-        m_type = v.m_type;
-        m_value = v.deep_copy();
-
-        return *this;
-    }
-
-    basic_json& operator=(basic_json&& other) {
-        m_value.destroy(m_type);
-
-        m_type = other.m_type;
-        m_value = other.m_value;
-
-        other.m_type = value_t::null;
-        other.m_value = {};
-        return *this;
-    }
 
 public:
     value_t type() const { return m_type; }
@@ -172,54 +149,38 @@ public:
             assert(is_string());
             return *m_value.string;
         }
-        // string*
-        else if constexpr (std::is_same_v<T, const std::string*>) {
-            assert(is_string());
-            return m_value.string;
-        }
-        // vector<basic_json*>
-        else if constexpr (std::is_same_v<T, std::vector<basic_json*>>) {
+        // vector<basic_json>
+        else if constexpr (std::is_same_v<T, std::vector<basic_json>>) {
             assert(is_array());
             return *m_value.array;
         }
-        // vector<basic_json&>
-        else if constexpr (std::is_same_v<T, std::vector<basic_json*>&>) {
+        // vector<basic_json>&
+        else if constexpr (std::is_same_v<T, std::vector<basic_json>&>) {
             assert(is_array());
             return *m_value.array;
         }
-        // const vector<basic_json*>&
-        else if constexpr (std::is_same_v<T, const std::vector<basic_json*>&>) {
+        // const vector<basic_json>&
+        else if constexpr (std::is_same_v<T, const std::vector<basic_json>&>) {
             assert(is_array());
             return *m_value.array;
         }
-        // vector<basic_json*>*
-        else if constexpr (std::is_same_v<T, const std::vector<basic_json*>*>) {
-            assert(is_array());
-            return m_value.array;
-        }
-        // map<string, basic_json*>
+        // map<string, basic_json>
         else if constexpr (std::is_same_v<T,
-                                          std::map<std::string, basic_json*>>) {
+                                          std::map<std::string, basic_json>>) {
             assert(is_object());
             return *m_value.object;
         }
-        // map<string, basic_json*>&
-        else if constexpr (std::is_same_v<
-                               T, std::map<std::string, basic_json*>&>) {
+        // map<string, basic_json>&
+        else if constexpr (std::is_same_v<T,
+                                          std::map<std::string, basic_json>&>) {
             assert(is_object());
             return *m_value.object;
         }
-        // const map<string, basic_json*>&
+        // const map<string, basic_json>&
         else if constexpr (std::is_same_v<
-                               T, const std::map<std::string, basic_json*>&>) {
+                               T, const std::map<std::string, basic_json>&>) {
             assert(is_object());
             return *m_value.object;
-        }
-        // map<string, basic_json*>*
-        else if constexpr (std::is_same_v<
-                               T, std::map<std::string, basic_json*>*>) {
-            assert(is_object());
-            return m_value.object;
         }
         // else
         else {
@@ -227,6 +188,37 @@ public:
             static_assert(std::is_same_v<T, std::string>,
                           "basic_json::get<T>() : T is not supported");
         }
+    }
+
+    // get a string representation of a JSON value (serialize)
+    string_t dump() const;
+
+public:
+    // 赋值函数
+    basic_json& operator=(const basic_json& other) {
+        m_value.destroy(m_type);
+
+        m_type = other.m_type;
+        m_value = other.deep_copy();
+
+        return *this;
+    }
+
+    basic_json& operator=(basic_json&& other) {
+        m_value.destroy(m_type);
+
+        m_type = other.m_type;
+        m_value = other.m_value;
+
+        other.m_type = value_t::null;
+        other.m_value = value_t(value_t::null);
+        return *this;
+    }
+
+    bool operator==(const basic_json& other) const {
+        if (this->m_type != other.m_type)
+            return false;
+        return this->dump() == other.dump();
     }
 
 private:

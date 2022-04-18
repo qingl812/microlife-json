@@ -15,7 +15,7 @@ basic_json::json_value basic_json::deep_copy() const {
     else if (m_type == value_t::array) {
         auto j = json_value(value_t::array);
         for (const auto& i : *this->m_value.array) {
-            j.array->push_back(new basic_json(*i));
+            j.array->push_back(std::move(basic_json(i)));
         }
         return j;
     }
@@ -24,7 +24,7 @@ basic_json::json_value basic_json::deep_copy() const {
         auto j = json_value(value_t::object);
         for (const auto& i : *this->m_value.object) {
             j.object->insert(
-                std::make_pair(i.first, new basic_json(*i.second)));
+                std::make_pair(i.first, std::move(basic_json(i.second))));
         }
         return j;
     }
@@ -71,16 +71,58 @@ basic_json::json_value::json_value(value_t t) {
 // TODO: 改为非递归版本
 void basic_json::json_value::destroy(const value_t t) {
     if (t == value_t::array) {
-        for (auto i : *array)
-            delete i;
         delete array;
     } else if (t == value_t::object) {
-        for (auto i : *object) {
-            assert(i.second != nullptr);
-            i.second->m_value.destroy(i.second->m_type);
-        }
         delete object;
     } else if (t == value_t::string) {
         delete string;
+    }
+}
+
+// TODO: 改为非递归版本, 特殊字符处理
+basic_json::string_t basic_json::dump() const {
+    switch ((m_type)) {
+    case value_t::null:
+        return "null";
+
+    case value_t::boolean:
+        if (m_value.boolean)
+            return "true";
+        else
+            return "false";
+
+    case value_t::number:
+        return std::to_string(m_value.number);
+
+    case value_t::string:
+        return '\"' + *m_value.string + '\"';
+
+    case value_t::array: {
+        string_t ret;
+        ret.push_back('[');
+        for (const auto& i : *m_value.array) {
+            ret += i.dump();
+            ret.push_back(',');
+        }
+        ret.pop_back();
+        ret.push_back(']');
+        return ret;
+    }
+
+    case value_t::object: {
+        string_t ret;
+        ret.push_back('{');
+        for (const auto& i : *m_value.object) {
+            ret += '\"' + i.first + '\"' + ':';
+            ret += i.second.dump();
+            ret.push_back(',');
+        }
+        ret.pop_back();
+        ret.push_back('}');
+        return ret;
+    }
+
+    default:
+        assert(false);
     }
 }

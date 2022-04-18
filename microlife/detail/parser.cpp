@@ -19,9 +19,6 @@ bool parser::parse(const string_t& str, basic_json& value) {
 
 void parser::clear() {
     while (!m_tokens.empty()) {
-        auto t = m_tokens.top().second;
-        if (t)
-            delete t;
         m_tokens.pop();
     }
 }
@@ -112,11 +109,6 @@ basic_json* parser::basic_parse(const string_t& str) {
                     if (temp_b.second)
                         delete temp_b.second;
                 }
-                // 解析失败
-                for (auto i : array) {
-                    if (i)
-                        delete i;
-                }
                 return nullptr;
             }
             // 解析成功
@@ -179,11 +171,6 @@ basic_json* parser::basic_parse(const string_t& str) {
                         if (temp_c.second)
                             delete temp_c.second;
                     }
-                }
-                // 解析失败
-                for (auto i : object) {
-                    if (i.second)
-                        delete i.second;
                 }
                 return nullptr;
             }

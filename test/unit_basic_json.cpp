@@ -51,9 +51,9 @@ TEST(basic_json, json_value) {
     TEST_JSON_VALUE_CONSTRUCTOR_P(obj1, obj2, object);
     TEST_JSON_VALUE_CONSTRUCTOR_P(std::move(obj1), obj2, object);
 
-    TEST_JSON_VALUE_CONSTRUCTOR_P(value_t::object, *(new object_t()), object);
-    TEST_JSON_VALUE_CONSTRUCTOR_P(value_t::array, *(new array_t()), array);
-    TEST_JSON_VALUE_CONSTRUCTOR_P(value_t::string, *(new string_t()), string);
+    TEST_JSON_VALUE_CONSTRUCTOR_P(value_t::object, object_t(), object);
+    TEST_JSON_VALUE_CONSTRUCTOR_P(value_t::array, array_t(), array);
+    TEST_JSON_VALUE_CONSTRUCTOR_P(value_t::string, string_t(), string);
     TEST_JSON_VALUE_CONSTRUCTOR_BASE(value_t::boolean, false, boolean);
     TEST_JSON_VALUE_CONSTRUCTOR_BASE(value_t::number, 0, number);
     TEST_JSON_VALUE_CONSTRUCTOR_BASE(value_t::null, nullptr, object);
@@ -75,13 +75,25 @@ TEST(basic_json, json_value) {
     v1.destroy(value_t::array);
 
     {
-        auto j1 = new basic_json(2, value_t::object);
-        auto a1 = j1->get<array_t&>().at(0);
-        a1->get<object_t&>().emplace(string_t("key1"), new basic_json(true));
-        a1->get<object_t&>().emplace("key2", new basic_json(1.23));
-        a1->get<object_t&>().emplace("key3", new basic_json(value_t::array));
-        a1->get<object_t&>().emplace("key4", new basic_json(value_t::string));
-        a1->get<object_t&>().emplace("key5", new basic_json(value_t::object));
+        json_value v1(value_t::array);
+        v1.array->push_back(nullptr);
+        v1.array->push_back(true);
+        v1.array->push_back(3.1415);
+        v1.array->push_back(string_t("hello"));
+        v1.destroy(value_t::array);
+        v1.destroy(value_t::null);
+
+        auto j1 = new basic_json(2, basic_json(value_t::object));
+        EXPECT_TRUE(j1->is_array());
+        auto a1 = j1->get<array_t&>();
+        EXPECT_EQ(2, a1.size());
+        auto& o1 = a1[0];
+        EXPECT_TRUE(o1.is_object());
+        o1.get<object_t&>().emplace(string_t("key1"), basic_json(true));
+        o1.get<object_t&>().emplace("key2", basic_json(1.23));
+        o1.get<object_t&>().emplace("key3", basic_json(value_t::array));
+        o1.get<object_t&>().emplace("key4", basic_json(value_t::string));
+        o1.get<object_t&>().emplace("key5", basic_json(value_t::object));
         delete j1;
     }
 }
@@ -115,40 +127,70 @@ TEST(basic_json, constructor) {
     TEST_BASIC_JSON_CONSTRUCTOR_BASE(a1, a2, array_t);
     TEST_BASIC_JSON_CONSTRUCTOR_BASE(std::move(a1), a2, array_t);
 
-    object_t obj1 = {{"key1", new basic_json(true)},
-                     {"key2", new basic_json(0)}};
+    object_t obj1 = {{"key1", true}, {"key2", 0}};
     auto obj2 = obj1;
     TEST_BASIC_JSON_CONSTRUCTOR_BASE(obj1, obj2, object_t);
     TEST_BASIC_JSON_CONSTRUCTOR_BASE(std::move(obj1), obj2, object_t);
 
-    TEST_BASIC_JSON_CONSTRUCTOR_BASE(value_t::object, *(new object_t()),
-                                     object_t);
-    TEST_BASIC_JSON_CONSTRUCTOR_BASE(value_t::array, *(new array_t()), array_t);
-    TEST_BASIC_JSON_CONSTRUCTOR_BASE(value_t::string, *(new string_t()),
-                                     string_t);
+    TEST_BASIC_JSON_CONSTRUCTOR_BASE(value_t::object, object_t(), object_t);
+    TEST_BASIC_JSON_CONSTRUCTOR_BASE(value_t::array, array_t(), array_t);
+    TEST_BASIC_JSON_CONSTRUCTOR_BASE(value_t::string, string_t(), string_t);
     TEST_BASIC_JSON_CONSTRUCTOR_BASE(value_t::boolean, false, boolean_t);
     TEST_BASIC_JSON_CONSTRUCTOR_BASE(value_t::number, 0, int);
     TEST_BASIC_JSON_CONSTRUCTOR_BASE(value_t::number, 0, double);
 
     // copy constructor
     {
-        auto j1 = new basic_json(2, value_t::object);
-        auto j2 = j1->get<array_t&>().at(0);
-        j2->get<object_t&>().emplace(string_t("key1"), new basic_json(true));
-        j2->get<object_t&>().emplace("key2", new basic_json(1.23));
-        j2->get<object_t&>().emplace("key3", new basic_json(value_t::array));
-        j2->get<object_t&>().emplace("key4", new basic_json(value_t::string));
-        j2->get<object_t&>().emplace("key5", new basic_json(value_t::object));
+        auto j1 = basic_json(3.1415);
+        EXPECT_EQ(j1.type(), value_t::number);
+        EXPECT_EQ(3.1415, j1.get<double>());
+        auto j2 = j1;
+        EXPECT_EQ(j2.type(), value_t::number);
+        EXPECT_EQ(3.1415, j2.get<double>());
+    }
+    {
+        basic_json j1 = array_t({true, 3.14159});
+        EXPECT_EQ(j1.type(), value_t::array);
+        auto a1 = j1.get<array_t&>();
+        EXPECT_EQ(2, a1.size());
+        EXPECT_EQ(true, a1[0].get<bool>());
+        EXPECT_EQ(3.14159, a1[1].get<double>());
 
-        basic_json j3(*j1);
+        auto j2 = j1;
+        EXPECT_EQ(j2.type(), value_t::array);
+        a1 = j2.get<array_t&>();
+        EXPECT_EQ(2, a1.size());
+        EXPECT_EQ(true, a1[0].get<bool>());
+        EXPECT_EQ(3.14159, a1[1].get<double>());
+    }
+    {
+        auto j1 = basic_json(2, value_t::object);
+        auto& j2 = j1.get<array_t&>().at(0);
+        j2.get<object_t&>().emplace("key1", basic_json(true));
+        j2.get<object_t&>().emplace("key2", basic_json(1.23));
+        j2.get<object_t&>().emplace("key3", basic_json(value_t::array));
+        j2.get<object_t&>().emplace("key4", basic_json(value_t::string));
+        j2.get<object_t&>().emplace("key5", basic_json(value_t::object));
+
+        basic_json j3(j1);
         EXPECT_TRUE(j3.is_array());
         auto a1 = j3.get<array_t&>();
-        EXPECT_EQ(a1.size(), 2);
-        EXPECT_EQ(a1[0]->get<object_t>()["key1"]->get<bool>(), true);
-        EXPECT_EQ(a1[0]->get<object_t>()["key2"]->get<double>(), 1.23);
-        EXPECT_TRUE(a1[0]->get<object_t>()["key3"]->is_array());
-        EXPECT_TRUE(a1[0]->get<object_t>()["key4"]->is_string());
-        EXPECT_TRUE(a1[0]->get<object_t>()["key5"]->is_object());
+        EXPECT_EQ(2, a1.size());
+
+        auto obj = a1[0];
+        EXPECT_EQ(obj.type(), value_t::object);
+        EXPECT_EQ(5, obj.get<object_t&>().size());
+        EXPECT_TRUE(obj.get<object_t&>().count("key1") != 0);
+        EXPECT_TRUE(obj.get<object_t&>().count("key2") != 0);
+        EXPECT_TRUE(obj.get<object_t&>().count("key3") != 0);
+        EXPECT_TRUE(obj.get<object_t&>().count("key4") != 0);
+        EXPECT_TRUE(obj.get<object_t&>().count("key5") != 0);
+
+        EXPECT_EQ(obj.get<object_t>()["key1"].get<bool>(), true);
+        EXPECT_EQ(obj.get<object_t>()["key2"].get<double>(), 1.23);
+        EXPECT_TRUE(obj.get<object_t>()["key3"].is_array());
+        EXPECT_TRUE(obj.get<object_t>()["key4"].is_string());
+        EXPECT_TRUE(obj.get<object_t>()["key5"].is_object());
     }
     // move constructor
     {
@@ -166,12 +208,11 @@ TEST(basic_json, constructor) {
         basic_json j1(2, 3.14);
         EXPECT_TRUE(j1.is_array());
         EXPECT_EQ(2, j1.get<array_t>().size());
-        EXPECT_TRUE(j1.get<array_t>().at(0)->is_number());
-        EXPECT_TRUE(j1.get<array_t>().at(1)->is_number());
-        EXPECT_EQ(3.14, j1.get<array_t>().at(0)->get<double>());
-        EXPECT_EQ(3.14, j1.get<array_t>().at(1)->get<double>());
-    }
-    // operator=(const basic_json& v)
+        EXPECT_TRUE(j1.get<array_t>().at(0).is_number());
+        EXPECT_TRUE(j1.get<array_t>().at(1).is_number());
+        EXPECT_EQ(3.14, j1.get<array_t>().at(0).get<double>());
+        EXPECT_EQ(3.14, j1.get<array_t>().at(1).get<double>());
+    } // operator=(const basic_json& v)
     {
         basic_json j1(true);
         EXPECT_TRUE(j1.is_boolean());
