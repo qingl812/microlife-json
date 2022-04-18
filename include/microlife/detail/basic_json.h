@@ -136,6 +136,7 @@ public:
             assert(is_number());
             return m_value.number;
         }
+
         // string
         else if constexpr (std::is_same_v<T, std::string>) {
             assert(is_string());
@@ -151,6 +152,7 @@ public:
             assert(is_string());
             return *m_value.string;
         }
+
         // vector<basic_json>
         else if constexpr (std::is_same_v<T, std::vector<basic_json>>) {
             assert(is_array());
@@ -166,6 +168,7 @@ public:
             assert(is_array());
             return *m_value.array;
         }
+
         // map<string, basic_json>
         else if constexpr (std::is_same_v<T,
                                           std::map<std::string, basic_json>>) {
@@ -184,9 +187,9 @@ public:
             assert(is_object());
             return *m_value.object;
         }
+
         // else
         else {
-            // always false
             static_assert(std::is_same_v<T, std::string>,
                           "basic_json::get<T>() : T is not supported");
         }
@@ -195,7 +198,7 @@ public:
     // get a string representation of a JSON value (serialize)
     string_t dump() const;
     // parse a string into a JSON value (deserialize)
-    static basic_json parse(const string_t&);
+    bool parse(const string_t&);
 
 public:
     // 赋值函数

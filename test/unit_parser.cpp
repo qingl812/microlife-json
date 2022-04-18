@@ -2,11 +2,13 @@
 
 #include <gtest/gtest.h>
 
+microlife::detail::parser m_parser;
+
 #define TEST_PARSER_PARSE_BASE(_json, _judge, _type)                           \
     do {                                                                       \
         microlife::detail::basic_json::string_t str = _json;                   \
         microlife::detail::basic_json j;                                       \
-        _judge(microlife::detail::parser::parse(str, j));                      \
+        _judge(m_parser.parse(str, j));                                        \
         EXPECT_EQ(microlife::detail::value_t::_type, j.type());                \
     } while (0)
 

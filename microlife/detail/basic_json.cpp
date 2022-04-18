@@ -140,13 +140,9 @@ basic_json::string_t basic_json::dump() const {
     }
 }
 
-basic_json basic_json::parse(const string_t& str) {
-    basic_json j;
-    parser p;
-    if (p.parse(str, j)) {
-        return j;
-    }
-    return basic_json();
+bool basic_json::parse(const string_t& str) {
+    static parser p;
+    return p.parse(str, *this);
 }
 
 /***
@@ -196,8 +192,9 @@ int8_t basic_json::compare(const basic_json& left, const basic_json& right) {
         std::sort(a.begin(), a.end(), cmp);
         std::sort(b.begin(), b.end(), cmp);
         // compare
-        for (size_t i = 0; i < a.size(); i++) {
-            auto diff = compare(a[i], b[i]);
+        for (auto it_a = a.begin(), it_b = b.begin(); it_a != a.end();
+             it_a++, it_b++) {
+            auto diff = compare(*it_a, *it_b);
             if (diff != 0) {
                 return diff;
             }
@@ -205,8 +202,21 @@ int8_t basic_json::compare(const basic_json& left, const basic_json& right) {
         return 0;
     }
 
-    case value_t::object:
-        return *left_v.object == *right_v.object;
+    case value_t::object: {
+        int diff = left_v.object->size() - right_v.object->size();
+        if (diff != 0) {
+            return diff > 0 ? 1 : -1;
+        }
+        // compare
+        for (auto it_a = left_v.object->begin(), it_b = right_v.object->begin();
+             it_a != left_v.object->end(); it_a++, it_b++) {
+            auto diff = compare(it_a->second, it_b->second);
+            if (diff != 0) {
+                return diff;
+            }
+        }
+        return 0;
+    }
 
     default:
         assert(false);
