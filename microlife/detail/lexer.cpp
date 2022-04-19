@@ -3,72 +3,48 @@
 using namespace microlife;
 using namespace microlife::detail;
 
-void lexer::init(string_t::const_iterator begin, string_t::const_iterator end) {
-    assert(*end == '\0');
-    m_cur = begin;
-}
-
-bool lexer::is_whitespace() const {
-    return *m_cur == ' ' || *m_cur == '\t' || *m_cur == '\n' || *m_cur == '\r';
-}
-
-void lexer::skip_whitespace() {
-    while (is_whitespace())
-        m_cur++;
-}
-
 lexer::token_t lexer::scan() {
     skip_whitespace();
 
-    switch (*m_cur) {
+    switch (m_cur) {
     // structural characters
     case '[':
-        m_cur++;
-        m_token = token_t::begin_array;
-        break;
+        next_char();
+        return token_t::begin_array;
 
     case ']':
-        m_cur++;
-        m_token = token_t::end_array;
-        break;
+        next_char();
+        return token_t::end_array;
 
     case '{':
-        m_cur++;
-        m_token = token_t::begin_object;
-        break;
+        next_char();
+        return token_t::begin_object;
 
     case '}':
-        m_cur++;
-        m_token = token_t::end_object;
-        break;
+        next_char();
+        return token_t::end_object;
 
     case ':':
-        m_cur++;
-        m_token = token_t::name_separator;
-        break;
+        next_char();
+        return token_t::name_separator;
 
     case ',':
-        m_cur++;
-        m_token = token_t::value_separator;
-        break;
+        next_char();
+        return token_t::value_separator;
 
     // literals
     case 't':
-        m_token = scan_literal("rue", token_t::literal_true);
-        break;
+        return scan_literal("rue", token_t::literal_true);
 
     case 'f':
-        m_token = scan_literal("alse", token_t::literal_false);
-        break;
+        return scan_literal("alse", token_t::literal_false);
 
     case 'n':
-        m_token = scan_literal("ull", token_t::literal_null);
-        break;
+        return scan_literal("ull", token_t::literal_null);
 
     // string
     case '\"':
-        m_token = scan_string();
-        break;
+        return scan_string();
 
     // number
     case '-':
@@ -82,43 +58,39 @@ lexer::token_t lexer::scan() {
     case '7':
     case '8':
     case '9':
-        m_token = scan_number();
-        break;
+        return scan_number();
 
         // end of input (the null byte is needed when parsing from
         // string literals)
     case '\0':
-        m_token = token_t::end_of_input;
-        break;
+        return token_t::end_of_input;
 
         // error
     default:
-        m_token = token_t::parse_error;
-        break;
+        return token_t::parse_error;
     }
-
-    return m_token;
 }
 
 lexer::token_t lexer::scan_string() {
-    assert(*m_cur == '\"');
+    assert(m_cur == '\"');
     m_buffer.clear();
 
     while (true) {
-        m_cur++;
-        switch (*m_cur) {
+        next_char();
+        switch (m_cur) {
         case '\0':
             return token_t::parse_error; // 缺失右引号 '"'
 
         case '\"':
-            m_cur++;
+            next_char();
             return token_t::value_string;
 
         case '\\': {
-            switch (*++m_cur) {
+            next_char();
+            switch (m_cur) {
             case '\"':
             case '\\':
-                m_buffer.push_back(*m_cur);
+                m_buffer.push_back(m_cur);
                 break;
             case 'b':
                 m_buffer.push_back('\b');
@@ -141,8 +113,8 @@ lexer::token_t lexer::scan_string() {
                 auto parse_hex4 = [&](unsigned& u) {
                     u = 0;
                     for (int i = 0; i < 4; i++) {
-                        m_cur++;
-                        char ch = *m_cur;
+                        next_char();
+                        char ch = m_cur;
                         u <<= 4;
                         if (ch >= '0' && ch <= '9')
                             u |= ch - '0';
@@ -161,9 +133,17 @@ lexer::token_t lexer::scan_string() {
                     return token_t::parse_error;
                 // surrogate pair
                 if (u >= 0xD800 && u <= 0xDBFF) {
-                    if (*++m_cur != '\\' || *++m_cur != 'u' ||
-                        !parse_hex4(u2) || (u2 < 0xDC00 || u2 > 0xDFFF))
+                    // '\\' + 'u' + 4 字符
+                    next_char();
+                    if (m_cur != '\\')
                         return token_t::parse_error;
+                    next_char();
+                    if (m_cur != 'u')
+                        return token_t::parse_error;
+
+                    if (!parse_hex4(u2) || (u2 < 0xDC00 || u2 > 0xDFFF))
+                        return token_t::parse_error;
+
                     u = (((u - 0xD800) << 10) | (u2 - 0xDC00)) + 0x10000;
                 }
                 // 为什么要做 x & 0xFF 这种操作呢？
@@ -198,10 +178,10 @@ lexer::token_t lexer::scan_string() {
         }
 
         default:
-            if ((unsigned char)*m_cur < 0x20) {
+            if ((unsigned char)m_cur < 0x20) {
                 return token_t::parse_error;
             }
-            m_buffer.push_back(*m_cur);
+            m_buffer.push_back(m_cur);
             break;
         }
     }
@@ -217,77 +197,71 @@ lexer::token_t lexer::scan_number() {
 
     // 判断字符是否为 1-9 的数字
     auto isDigital = [](char c) { return c >= '0' && c <= '9'; };
-    auto p = m_cur;
-    if (*p == '-')
-        p++;
+    auto it_old = m_it_cur - 1;
 
-    if (isDigital(*p)) {
-        if (*p != '0') {
-            p++;
-            while (isDigital(*p))
-                p++;
+    if (m_cur == '-')
+        next_char();
+
+    if (isDigital(m_cur)) {
+        if (m_cur != '0') {
+            next_char();
+            while (isDigital(m_cur))
+                next_char();
         } else
-            p++;
+            next_char();
     } else
         return token_t::parse_error;
 
-    if (*p == '.') {
-        p++;
+    if (m_cur == '.') {
+        next_char();
         // 至少要有一个数字
         // 移动指针到下一个非数字的字符
-        if (!isDigital(*p))
+        if (!isDigital(m_cur))
             return token_t::parse_error;
         do {
-            p++;
-        } while (isDigital(*p));
+            next_char();
+        } while (isDigital(m_cur));
     }
 
-    if (*p == 'e' || *p == 'E') {
-        p++;
-        if (*p == '+' || *p == '-')
-            p++;
+    if (m_cur == 'e' || m_cur == 'E') {
+        next_char();
+        if (m_cur == '+' || m_cur == '-')
+            next_char();
         // 至少要有一个数字
         // 移动指针到下一个非数字的字符
-        if (!isDigital(*p))
+        if (!isDigital(m_cur))
             return token_t::parse_error;
         do {
-            p++;
-        } while (isDigital(*p));
+            next_char();
+        } while (isDigital(m_cur));
     }
 
     // 数字格式校验正确
     // strtod
     errno = 0;
-    m_value_number = strtod(string_t(m_cur, p).c_str(), nullptr);
+    m_value_number = strtod(string_t(it_old, m_it_cur).c_str(), nullptr);
     // 数字过大
     if (errno == ERANGE &&
         (m_value_number == HUGE_VAL || m_value_number == -HUGE_VAL)) {
         return token_t::parse_error;
     }
 
-    m_cur = p;
     return token_t::value_number;
 }
 
 lexer::token_t lexer::scan_literal(const char_t* literal_text,
                                    token_t return_type) {
-    m_cur++;
+    assert(literal_text != nullptr);
+
+    next_char();
     while (*literal_text != '\0') {
-        if (*m_cur != *literal_text)
+        assert(literal_text != nullptr);
+
+        if (m_cur != *literal_text)
             return token_t::parse_error;
-        m_cur++;
         literal_text++;
+        next_char();
     }
 
     return return_type;
-}
-
-lexer::number_t lexer::get_number() const {
-    assert(m_token == token_t::value_number);
-    return m_value_number;
-}
-
-lexer::string_t&& lexer::get_string() {
-    assert(m_token == token_t::value_string);
-    return std::move(m_buffer);
 }

@@ -220,6 +220,6 @@ int8_t basic_json::compare(const basic_json& left, const basic_json& right) {
 
     default:
         assert(false);
-        break;
+        return 0;
     }
 }

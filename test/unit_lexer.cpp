@@ -66,7 +66,7 @@ TEST(lexer, boolean) {
 
 TEST(lexer, string) {
     // string
-    TEST_LEXER_STRING("hello", R"("hello")");
+    TEST_LEXER_STRING("hello", "\"hello\"");
     TEST_LEXER_STRING("\" \\ / \b \f \n \r \t",
                       "\"\\\" \\\\ / \\b \\f \\n \\r \\t\""); // 与下面语句相同
     TEST_LEXER_STRING("\" \\ / \b \f \n \r \t", R"("\" \\ / \b \f \n \r \t")");

@@ -211,7 +211,7 @@ public:
         return *this;
     }
 
-    basic_json& operator=(basic_json&& other) {
+    basic_json& operator=(basic_json&& other) noexcept {
         m_value.destroy(m_type);
 
         m_type = other.m_type;

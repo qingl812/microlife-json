@@ -27,16 +27,25 @@ TEST(basic_json, parser) {
     TEST_PARSER(123, "123");
     TEST_PARSER(3.14, "3.14");
     TEST_PARSER("hello", "\"hello\"");
-    TEST_PARSER(array_t({123, true, false}), "[123,true,false]");
 
-    auto ary = array_t({123, true, nullptr});
-    ary[2] = array_t({false});
-    TEST_PARSER(ary, "[123,true,[false]]");
+    array_t ary = {123, true, false};
+    TEST_PARSER(ary, "[123,true,false]");
 
-    ary[1] = array_t({array_t({true})});
-    TEST_PARSER(ary, "[123,[[true]],[false]]");
+    {
+        ary = {123, true, nullptr};
+        auto a = array_t();
+        a.push_back(false);
+        ary[2] = a;
+        TEST_PARSER(ary, "[123,true,[false]]");
 
-    TEST_PARSER(array_t({123}), "[123]");
+        a[0] = true;
+        a[0] = a;
+        ary[1] = a;
+        TEST_PARSER(ary, "[123,[[true]],[false]]");
+    }
+
+    ary = {123};
+    TEST_PARSER(ary, "[123]");
     TEST_PARSER(array_t(), "[]");
 
     basic_json j = value_t::array;

@@ -3,7 +3,12 @@ project(microlife-json)
 
 # Set the compiler options
 set(CMAKE_CXX_STANDARD 17)
+if(MSVC)
+add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+else()
 set(CMAKE_CXX_FLAGS "-g -O0 -Wall -coverage")
+endif()
 
 set(
   PROJECT_SOURCES
@@ -35,7 +40,7 @@ include_directories("./include")
 include(FetchContent)
 FetchContent_Declare(
   googletest
-  URL https://github.com/google/googletest/archive/refs/tags/release-1.11.0.zip
+  URL https://file.winterwonder.top/public/package/googletest-release-1.11.0.zip
 )
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)

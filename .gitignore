@@ -3,3 +3,6 @@ lcov/html/
 .vscode/
 out/
 .history/
+.vs
+CMakeSettings.json
+TestResults/
