@@ -1,4 +1,6 @@
-#include "microlife/detail/parser.h"
+#define JSON_TESTS_PRIVATE
+
+#include "microlife/detail/parser.hpp"
 
 #include <gtest/gtest.h>
 
@@ -42,12 +44,17 @@ TEST(parser, parse) {
     TEST_PARSER_PARSE_FALSE("[123,truee,false]");
     TEST_PARSER_PARSE_FALSE("[123,t,false]");
     TEST_PARSER_PARSE_FALSE("[123,\",false]");
+    TEST_PARSER_PARSE_FALSE("[123, true, false null]");
+
     TEST_PARSER_PARSE_FALSE("{\"a\":null:}");
     TEST_PARSER_PARSE_FALSE("{\"a\":,null}");
     TEST_PARSER_PARSE_FALSE("{\"a\"null}");
     TEST_PARSER_PARSE_FALSE("{,\"a\":null}");
     TEST_PARSER_PARSE_FALSE("{\"a\":null,}");
     TEST_PARSER_PARSE_FALSE("{[true]:null}");
+    TEST_PARSER_PARSE_FALSE("{\"v\":null,\"a\":null,\"b\" null}");
+    TEST_PARSER_PARSE_FALSE("{\"v\":null,\"a\":null \"b\":null}");
+    TEST_PARSER_PARSE_FALSE("{\"v\":null,\"a\":,,\"b\":null}");
 
     TEST_PARSER_PARSE_FALSE("0123");
     TEST_PARSER_PARSE_FALSE("0x0");
@@ -69,4 +76,5 @@ TEST(parser, parse) {
     TEST_PARSER_PARSE_TRUE(object, "{}");
     TEST_PARSER_PARSE_TRUE(object, "{\"a\":null}");
     TEST_PARSER_PARSE_TRUE(object, "{\"v\":[{\"a\":null}]}");
+    TEST_PARSER_PARSE_TRUE(object, "{\"v\":null,\"a\":null,\"b\":null}");
 }

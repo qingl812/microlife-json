@@ -1,6 +1,7 @@
 #define JSON_TESTS_PRIVATE
 
 #include "microlife/detail/basic_json.h"
+#include "microlife/detail/token_t.hpp"
 
 #include <gtest/gtest.h>
 
@@ -234,7 +235,7 @@ TEST(basic_json, constructor) {
     }
 }
 
-// 测试 value_t 是否可以 cout
+// 测试 target 是否可以 cout
 #define TEST_OS(expected, target)                                              \
     do {                                                                       \
         std::ostringstream osstring;                                           \
@@ -259,4 +260,66 @@ TEST(basic_json, value_t) {
     std::ostream& os = osstring;
     os << microlife::detail::value_t(100);
     EXPECT_EQ("unknown type_t", osstring.str());
+}
+
+// cout token_t
+#define TEST_OS_TOKEN_T(expected, target) TEST_OS(expected, token_t::target)
+
+TEST(basic_json, token_t) {
+    TEST_OS_TOKEN_T("literal_true", literal_true);
+    TEST_OS_TOKEN_T("literal_false", literal_false);
+    TEST_OS_TOKEN_T("literal_null", literal_null);
+    TEST_OS_TOKEN_T("value_string", value_string);
+    TEST_OS_TOKEN_T("value_number", value_number);
+    TEST_OS_TOKEN_T("begin_array", begin_array);
+    TEST_OS_TOKEN_T("begin_object", begin_object);
+    TEST_OS_TOKEN_T("end_array", end_array);
+    TEST_OS_TOKEN_T("end_object", end_object);
+    TEST_OS_TOKEN_T("name_separator", name_separator);
+    TEST_OS_TOKEN_T("value_separator", value_separator);
+    TEST_OS_TOKEN_T("parse_error", parse_error);
+    TEST_OS_TOKEN_T("end_of_input", end_of_input);
+
+    // unknown type
+    std::ostringstream osstring;
+    std::ostream& os = osstring;
+    os << microlife::detail::token_t(100);
+    EXPECT_EQ("unknown token_t", osstring.str());
+}
+
+TEST(basic_json, public_functions) {
+    // unknown type
+    std::ostringstream osstring;
+    std::ostream& os = osstring;
+    os << microlife::detail::basic_json(nullptr);
+    EXPECT_EQ("null", osstring.str());
+
+    // compare
+    EXPECT_TRUE(basic_json::compare(true, true) == 0);
+    EXPECT_TRUE(basic_json::compare(false, false) == 0);
+    EXPECT_TRUE(basic_json::compare(false, true) == -1);
+    EXPECT_TRUE(basic_json::compare(true, false) == 1);
+
+    EXPECT_TRUE(basic_json::compare(1, 1) == 0);
+    EXPECT_TRUE(basic_json::compare(3.14, 1) == 1);
+    EXPECT_TRUE(basic_json::compare(1, 10) == -1);
+
+    EXPECT_EQ(1, basic_json::compare(true, nullptr));
+    EXPECT_EQ(-1, basic_json::compare(nullptr, true));
+
+    EXPECT_TRUE(basic_json::compare(nullptr, nullptr) == 0);
+
+    EXPECT_TRUE(basic_json::compare(value_t::array, value_t::array) == 0);
+    EXPECT_TRUE(basic_json::compare(value_t::object, value_t::array) == 1);
+
+    array_t a1 = {1, 2, 3};
+    array_t a2 = {1};
+    EXPECT_TRUE(basic_json::compare(a1, a2) == 1);
+
+    object_t o1 = {{"a", 1}, {"b", 2}};
+    object_t o2 = {{"a", 1}};
+    EXPECT_TRUE(basic_json::compare(o1, o2) == 1);
+
+    o2 = {{"a", 1}, {"b", 10}};
+    EXPECT_TRUE(basic_json::compare(o2, o1) == 1);
 }

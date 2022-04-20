@@ -12,17 +12,18 @@ endif()
 
 set(
   PROJECT_SOURCES
-  "include/microlife/detail/value_t.h"
+  "include/microlife/detail/value_t.hpp"
+  "include/microlife/detail/token_t.hpp"
+  "include/microlife/detail/lexer.hpp"
+  "include/microlife/detail/parser.hpp"
+
+  "include/microlife/detail/macro_scope.hpp"
+  "include/microlife/detail/macro_unscope.hpp"
+
   "include/microlife/detail/basic_json.h"
-  "include/microlife/detail/lexer.h"
   "include/microlife/json.h"
 
-  "include/microlife/detail/macro_scope.h"
-  "include/microlife/detail/macro_unscope.h"
-  
-  "microlife/detail/lexer.cpp"
   "microlife/detail/basic_json.cpp"
-  "microlife/detail/parser.cpp"
 
   # unit test
   "test/unit_lexer.cpp"

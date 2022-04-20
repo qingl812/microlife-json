@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>    // array
 #include <cstdint>  // uint8_t
 #include <iostream> // os << value_t
 
@@ -12,12 +13,12 @@ namespace detail {
  */
 enum class value_t : uint8_t
 {
-    object,
-    array,
-    string,
+    null,
     boolean,
     number,
-    null
+    string,
+    array,
+    object
 };
 
 /***
@@ -25,7 +26,7 @@ enum class value_t : uint8_t
  * @author qingl
  * @date 2022_04_15
  */
-inline std::ostream& operator<<(std::ostream& os, const value_t& type) {
+inline std::ostream& operator<<(std::ostream& os, const value_t type) {
     switch (type) {
     case value_t::array:
         return os << "array";
@@ -48,6 +49,23 @@ inline std::ostream& operator<<(std::ostream& os, const value_t& type) {
     default:
         return os << "unknown type_t";
     }
+}
+
+/***
+ * @brief compare value_t
+ * @author qingl
+ * @date 2022_04_19
+ */
+inline bool operator<(const value_t lhs, const value_t rhs) noexcept {
+    static constexpr std::array<std::uint8_t, 6> order = {{
+        0 /* null */, 1 /* boolean */, 2 /* number */, 3 /* string */,
+        4 /* array */, 5 /* object */
+    }};
+
+    const auto l_index = static_cast<std::size_t>(lhs);
+    const auto r_index = static_cast<std::size_t>(rhs);
+    return l_index < order.size() && r_index < order.size() &&
+           order[l_index] < order[r_index];
 }
 } // namespace detail
 } // namespace microlife

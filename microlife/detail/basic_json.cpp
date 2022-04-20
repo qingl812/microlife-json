@@ -1,5 +1,5 @@
 #include "microlife/detail/basic_json.h"
-#include "microlife/detail/parser.h"
+#include "microlife/detail/parser.hpp"
 
 #include <algorithm> // sort
 #include <assert.h>
@@ -60,12 +60,9 @@ basic_json::json_value::json_value(value_t t) {
         number = number_t(0);
         break;
 
+    default:
     case value_t::null:
         object = nullptr;
-        break;
-
-    default:
-        assert(false);
         break;
     }
 }
@@ -81,9 +78,10 @@ void basic_json::json_value::destroy(const value_t t) {
     }
 }
 
-// TODO: 改为非递归版本, 特殊字符处理
+// TODO: 改为非递归版本
 basic_json::string_t basic_json::dump() const {
     switch ((m_type)) {
+    default:
     case value_t::null:
         return "null";
 
@@ -93,17 +91,11 @@ basic_json::string_t basic_json::dump() const {
         else
             return "false";
 
-    case value_t::number: {
-        string_t ret = std::to_string(m_value.number);
-        while (ret.back() == '0')
-            ret.pop_back();
-        if (ret.back() == '.')
-            ret.pop_back();
-        return ret;
-    }
+    case value_t::number:
+        return number_to_dump(m_value.number);
 
     case value_t::string:
-        return '\"' + *m_value.string + '\"';
+        return string_to_dump(*m_value.string);
 
     case value_t::array: {
         string_t ret;
@@ -133,10 +125,6 @@ basic_json::string_t basic_json::dump() const {
         ret.push_back('}');
         return ret;
     }
-
-    default:
-        assert(false);
-        return "";
     }
 }
 
@@ -155,14 +143,14 @@ bool basic_json::parse(const string_t& str) {
  * @date 2022_04_18
  */
 int8_t basic_json::compare(const basic_json& left, const basic_json& right) {
-    auto diff = int8_t(left.m_type) - int8_t(right.m_type);
-    if (diff != 0) {
-        return diff > 0 ? 1 : -1;
+    if (left.m_type != right.m_type) {
+        return left.m_type < right.m_type ? -1 : 1;
     }
 
     const auto& left_v = left.m_value;
     const auto& right_v = right.m_value;
     switch (left.m_type) {
+    default:
     case value_t::null:
         return 0;
 
@@ -217,9 +205,5 @@ int8_t basic_json::compare(const basic_json& left, const basic_json& right) {
         }
         return 0;
     }
-
-    default:
-        assert(false);
-        return 0;
     }
 }

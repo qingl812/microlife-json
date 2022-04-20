@@ -1,11 +1,12 @@
 #pragma once
 
-#include "macro_scope.h"
-#include "value_t.h"
+#include "macro_scope.hpp"
+#include "value_t.hpp"
 
-#include <map>    // object_t
-#include <string> // string_t
-#include <vector> // vector_t
+#include <map>     // object_t
+#include <sstream> // ostringstream
+#include <string>  // string_t
+#include <vector>  // vector_t
 
 namespace microlife {
 namespace detail {
@@ -25,15 +26,16 @@ public:
 
     using value_t = detail::value_t;
 
-    JSON_PRIVATE_UNLESS_TESTED :
+    // private
+    JSON_PRIVATE_UNLESS_TESTED
 
-        /***
-         * @brief json value union
-         * @details The real place to store the json value
-         * @author qingl
-         * @date 2022_04_14
-         */
-        union json_value {
+    /***
+     * @brief json value union
+     * @details The real place to store the json value
+     * @author qingl
+     * @date 2022_04_14
+     */
+    union json_value {
         boolean_t boolean;
         number_t number;
         string_t* string;
@@ -233,6 +235,79 @@ public:
 
 private:
     json_value deep_copy() const;
+
+    // number_t to string_t
+    inline static string_t number_to_dump(number_t number) {
+        char buffer[32];
+        sprintf(buffer, "%.17g", number);
+        return buffer;
+    }
+
+    // string_t to dump
+    inline static string_t string_to_dump(const string_t& string) {
+        static const char hex_digits[] = {'0', '1', '2', '3', '4', '5',
+                                          '6', '7', '8', '9', 'A', 'B',
+                                          'C', 'D', 'E', 'F'};
+        string_t ret;
+
+        ret.push_back('\"');
+        auto it = string.begin();
+        while (it != string.end()) {
+            unsigned char ch = (unsigned char)*it;
+
+            switch (ch) {
+            case '\"':
+                ret.push_back('\\');
+                ret.push_back('\"');
+                break;
+
+            case '\\':
+                ret.push_back('\\');
+                ret.push_back('\\');
+                break;
+
+            case '\b':
+                ret.push_back('\\');
+                ret.push_back('b');
+                break;
+
+            case '\f':
+                ret.push_back('\\');
+                ret.push_back('f');
+                break;
+
+            case '\n':
+                ret.push_back('\\');
+                ret.push_back('n');
+                break;
+
+            case '\r':
+                ret.push_back('\\');
+                ret.push_back('r');
+                break;
+
+            case '\t':
+                ret.push_back('\\');
+                ret.push_back('t');
+                break;
+
+            default:
+                if (ch < 0x20) {
+                    ret.push_back('\\');
+                    ret.push_back('u');
+                    ret.push_back('0');
+                    ret.push_back('0');
+                    ret.push_back(hex_digits[ch >> 4]);
+                    ret.push_back(hex_digits[ch & 15]);
+                } else
+                    ret.push_back(*it);
+            }
+
+            it++;
+        }
+        ret.push_back('\"');
+        return ret;
+    }
 };
 
 // cout baisc_json

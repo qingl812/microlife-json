@@ -1,11 +1,11 @@
-#include "microlife/detail/lexer.h"
+#include "microlife/detail/lexer.hpp"
 
 #include <gtest/gtest.h>
 
 // 测试 lexer 用的宏
 #define TEST_LEXER_BASE(json, type)                                            \
     microlife::detail::lexer lex;                                              \
-    microlife::detail::basic_json::string_t str;                               \
+    microlife::detail::lexer::string_t str;                               \
     str = json;                                                                \
     lex.init(str.begin(), str.end());                                          \
     EXPECT_EQ(microlife::detail::lexer::token_t::type, lex.scan());
@@ -214,7 +214,7 @@ using token_t = microlife::detail::lexer::token_t;
 
 TEST(lexer, complex) {
     microlife::detail::lexer lex;
-    microlife::detail::basic_json::string_t str;
+    microlife::detail::lexer::string_t str;
 
     str = " null \n true \t false [ ] { } , : 123 \"hello\"";
     lex.init(str.begin(), str.end());
