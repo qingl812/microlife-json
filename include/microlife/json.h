@@ -6,7 +6,7 @@
  * @date 2022_04_15
  */
 namespace microlife {
-using json = microlife::detail::basic_json;
+using json = ::microlife::detail::basic_json;
 }
 
 #include "microlife/detail/macro_unscope.hpp"
