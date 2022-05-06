@@ -70,6 +70,9 @@ function build() {
     # cmake
     run_no_error bash scripts/cmake.sh ${log_file} ${build_dir} ${cxx_compiler}
 
+    if [ ${project_name} == "null" ]; then
+        exit 0
+    fi
     # Execute the generated program
     print_info "Running ${exe_dir}/${exe_file}..."
     cur_path=$(pwd)
