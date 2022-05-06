@@ -1,16 +1,16 @@
 #pragma once
 #include "lexer.hpp"
 #include "macro_scope.hpp"
+#include "macro_scope.hpp" // json_assert()
 #include "parser.hpp"
 #include "value_t.hpp"
 
 #include <algorithm> // sort
-#include <assert.h>
-#include <map>      // object_t
-#include <sstream>  // ostringstream
-#include <string.h> // strcmp
-#include <string>   // string_t
-#include <vector>   // vector_t
+#include <map>       // object_t
+#include <sstream>   // ostringstream
+#include <string.h>  // strcmp
+#include <string>    // string_t
+#include <vector>    // vector_t
 
 namespace microlife {
 namespace detail {
@@ -29,6 +29,8 @@ public:
     using object_t = std::map<string_t, basic_json>;
 
     using value_t = detail::value_t;
+
+private:
     using parser =
         ::microlife::detail::parser<::microlife::detail::lexer, basic_json>;
 
@@ -167,68 +169,68 @@ public:
     T get() const {
         // bool
         if constexpr (std::is_same_v<T, bool>) {
-            assert(is_boolean());
+            json_assert(is_boolean());
             return m_value.boolean;
         }
         // int
         else if constexpr (std::is_same_v<T, int>) {
-            assert(is_number());
+            json_assert(is_number());
             return static_cast<int>(m_value.number);
         }
         // double
         else if constexpr (std::is_same_v<T, double>) {
-            assert(is_number());
+            json_assert(is_number());
             return m_value.number;
         }
 
         // string
         else if constexpr (std::is_same_v<T, std::string>) {
-            assert(is_string());
+            json_assert(is_string());
             return *m_value.string;
         }
         // string&
         else if constexpr (std::is_same_v<T, std::string&>) {
-            assert(is_string());
+            json_assert(is_string());
             return *m_value.string;
         }
         // const string&
         else if constexpr (std::is_same_v<T, const std::string&>) {
-            assert(is_string());
+            json_assert(is_string());
             return *m_value.string;
         }
 
         // vector<basic_json>
         else if constexpr (std::is_same_v<T, std::vector<basic_json>>) {
-            assert(is_array());
+            json_assert(is_array());
             return *m_value.array;
         }
         // vector<basic_json>&
         else if constexpr (std::is_same_v<T, std::vector<basic_json>&>) {
-            assert(is_array());
+            json_assert(is_array());
             return *m_value.array;
         }
         // const vector<basic_json>&
         else if constexpr (std::is_same_v<T, const std::vector<basic_json>&>) {
-            assert(is_array());
+            json_assert(is_array());
             return *m_value.array;
         }
 
         // map<string, basic_json>
         else if constexpr (std::is_same_v<T,
                                           std::map<std::string, basic_json>>) {
-            assert(is_object());
+            json_assert(is_object());
             return *m_value.object;
         }
         // map<string, basic_json>&
         else if constexpr (std::is_same_v<T,
                                           std::map<std::string, basic_json>&>) {
-            assert(is_object());
+            json_assert(is_object());
             return *m_value.object;
         }
         // const map<string, basic_json>&
         else if constexpr (std::is_same_v<
                                T, const std::map<std::string, basic_json>&>) {
-            assert(is_object());
+            asjson_assertsert(is_object());
             return *m_value.object;
         }
 

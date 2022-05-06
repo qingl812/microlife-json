@@ -9,8 +9,7 @@ namespace detail {
  * @author qingl
  * @date 2022_04_19
  */
-enum class token_t
-{
+enum class token_t {
     literal_true,    ///< the `true` literal
     literal_false,   ///< the `false` literal
     literal_null,    ///< the `null` literal

@@ -1,9 +1,8 @@
 #pragma once
 #include "token_t.hpp" // token_t
+#include "macro_scope.hpp" // json_assert()
 
-#include <assert.h> // assert()
 #include <errno.h>  // errno(strtod)
-#include <iostream> // os
 #include <math.h>   // HUGE_VAL(strtod)
 
 namespace microlife {
@@ -14,24 +13,27 @@ namespace detail {
  * @author qingl
  * @date 2022_04_09
  */
+template <typename JsonType>
 class lexer {
-public:
-    using number_t = double;
-    using string_t = std::string;
+private:
+    using basic_json = JsonType;
+    using number_t = typename basic_json::number_t;
+    using string_t = typename basic_json::string_t;
+    using string_const_iterator = typename string_t::const_iterator;
 
-    using token_t = microlife::detail::token_t;
+    using token_t = ::microlife::detail::token_t;
     using char_t = char;
 
 private:
-    string_t::const_iterator m_it_cur, m_it_end; // the next character to parse
-    char_t m_cur;                                // current character
+    string_const_iterator m_it_cur, m_it_end; // the next character to parse
+    char_t m_cur;                             // current character
 
     string_t m_buffer;       // parsed string value
     number_t m_value_number; // parsed number value
 
 public:
     // init the lexer with the given input buffer
-    void init(string_t::const_iterator begin, string_t::const_iterator end) {
+    void init(string_const_iterator begin, string_const_iterator end) {
         m_it_cur = begin;
         m_it_end = end;
         next_char();
@@ -113,9 +115,27 @@ public:
     string_t&& get_string() { return std::move(m_buffer); }
 
 private:
+    // scan a literal, true/false/null
+    inline token_t scan_literal(const char_t* literal_text,
+                                token_t return_type) {
+        json_assert(literal_text != nullptr);
+
+        next_char();
+        while (*literal_text != '\0') {
+            json_assert(literal_text != nullptr);
+
+            if (m_cur != *literal_text)
+                return token_t::parse_error;
+            literal_text++;
+            next_char();
+        }
+
+        return return_type;
+    }
+
     // scan string
     token_t scan_string() {
-        assert(m_cur == '\"');
+        json_assert(m_cur == '\"');
         m_buffer.clear();
 
         while (true) {
@@ -206,7 +226,7 @@ private:
                         m_buffer.push_back(0x80 | ((u >> 6) & 0x3F));
                         m_buffer.push_back(0x80 | (u & 0x3F));
                     } else {
-                        assert(u <= 0x10FFFF);
+                        json_assert(u <= 0x10FFFF);
                         m_buffer.push_back(0xF0 | ((u >> 18) & 0xFF));
                         m_buffer.push_back(0x80 | ((u >> 12) & 0x3F));
                         m_buffer.push_back(0x80 | ((u >> 6) & 0x3F));
@@ -307,24 +327,6 @@ private:
     // whether m_cur is a space
     inline bool is_whitespace() const {
         return m_cur == ' ' || m_cur == '\t' || m_cur == '\n' || m_cur == '\r';
-    }
-
-    // scan a literal, true/false/null
-    inline token_t scan_literal(const char_t* literal_text,
-                                token_t return_type) {
-        assert(literal_text != nullptr);
-
-        next_char();
-        while (*literal_text != '\0') {
-            assert(literal_text != nullptr);
-
-            if (m_cur != *literal_text)
-                return token_t::parse_error;
-            literal_text++;
-            next_char();
-        }
-
-        return return_type;
     }
 };
 } // namespace detail

@@ -1,5 +1,6 @@
 #pragma once
-#include <assert.h>
+#include "macro_scope.hpp" // json_assert()
+
 #include <memory> // std::unique_ptr
 #include <stack>  // stack
 
@@ -11,7 +12,7 @@ namespace detail {
  * @author qingl
  * @date 2022_04_09
  */
-template <typename LexerType, typename JsonType>
+template <template <typename> class LexerType, typename JsonType>
 class parser {
 private:
     using basic_json = JsonType;
@@ -22,8 +23,8 @@ private:
     using object_t = typename basic_json::object_t;
     using value_t = typename basic_json::value_t;
 
-    using lexer = LexerType;
-    using token_t = typename LexerType::token_t;
+    using lexer = LexerType<basic_json>;
+    using token_t = ::microlife::detail::token_t;
 
     using stack_token_t = std::stack<std::pair<token_t, basic_json*>>;
 
@@ -39,8 +40,8 @@ public:
     bool parse(const string_t& str, basic_json& json) {
         m_lexer.init(str.begin(), str.end());
 
-        assert(m_stack_token.empty());
-        assert(m_stack_json.empty());
+        json_assert(m_stack_token.empty());
+        json_assert(m_stack_json.empty());
 
         auto parse_json = basic_parse();
         // clean stacks

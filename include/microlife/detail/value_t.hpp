@@ -10,8 +10,7 @@ namespace detail {
  * @author qingl
  * @date 2022_04_09
  */
-enum class value_t : uint8_t
-{
+enum class value_t : uint8_t {
     null,
     boolean,
     number,

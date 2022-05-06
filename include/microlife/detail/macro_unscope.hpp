@@ -8,6 +8,6 @@
  */
 
 // clean up
-#undef JSON_ASSERT
+#undef json_assert
 #undef JSON_PRIVATE_UNLESS_TESTED
 #undef JSON_TESTS_PRIVATE

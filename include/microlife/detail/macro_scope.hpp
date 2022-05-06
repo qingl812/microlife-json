@@ -10,9 +10,9 @@
  */
 
 // allow overriding assert
-#if !defined(JSON_ASSERT)
+#if !defined(json_assert)
 #include <cassert> // assert
-#define JSON_ASSERT(x) assert(x)
+#define json_assert(x) assert(x)
 #endif
 
 // allow to access some private functions (needed by the test suite)

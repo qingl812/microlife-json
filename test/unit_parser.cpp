@@ -6,16 +6,17 @@
 
 #include <gtest/gtest.h>
 
-microlife::detail::parser<microlife::detail::lexer,
-                          microlife::detail::basic_json>
-    m_parser;
+using basic_json = microlife::detail::basic_json;
+using parser = microlife::detail::parser<microlife::detail::lexer, basic_json>;
+
+parser m_parser;
 
 #define TEST_PARSER_PARSE_BASE(_json, _judge, _type)                           \
     do {                                                                       \
-        microlife::detail::basic_json::string_t str = _json;                   \
-        microlife::detail::basic_json j;                                       \
+        basic_json::string_t str = _json;                                      \
+        basic_json j;                                                          \
         _judge(m_parser.parse(str, j));                                        \
-        EXPECT_EQ(microlife::detail::value_t::_type, j.type());                \
+        EXPECT_EQ(basic_json::value_t::_type, j.type());                       \
     } while (0)
 
 #define TEST_PARSER_PARSE_TRUE(_type, _json)                                   \
