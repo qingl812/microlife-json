@@ -30,7 +30,6 @@ FetchContent_MakeAvailable(googletest)
 add_executable(${PROJECT_NAME} ${TEST_SOURCES})
 target_link_libraries(
 	${PROJECT_NAME}
-	microlife-json-lib
 	gtest_main
 )
 

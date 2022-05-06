@@ -1,8 +1,4 @@
 #pragma once
-
-#include "basic_json.h"
-#include "lexer.hpp"
-
 #include <assert.h>
 #include <memory> // std::unique_ptr
 #include <stack>  // stack
@@ -15,15 +11,16 @@ namespace detail {
  * @author qingl
  * @date 2022_04_09
  */
-template <typename LexerType = microlife::detail::lexer>
+template <typename LexerType, typename JsonType>
 class parser {
 private:
-    using boolean_t = basic_json::boolean_t;
-    using number_t = basic_json::number_t;
-    using string_t = basic_json::string_t;
-    using array_t = basic_json::array_t;
-    using object_t = basic_json::object_t;
-    using value_t = basic_json::value_t;
+    using basic_json = JsonType;
+    using boolean_t = typename basic_json::boolean_t;
+    using number_t = typename basic_json::number_t;
+    using string_t = typename basic_json::string_t;
+    using array_t = typename basic_json::array_t;
+    using object_t = typename basic_json::object_t;
+    using value_t = typename basic_json::value_t;
 
     using lexer = LexerType;
     using token_t = typename LexerType::token_t;

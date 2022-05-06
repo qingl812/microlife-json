@@ -1,10 +1,14 @@
 #define JSON_TESTS_PRIVATE
 
+#include "microlife/detail/basic_json.h"
+#include "microlife/detail/lexer.hpp"
 #include "microlife/detail/parser.hpp"
 
 #include <gtest/gtest.h>
 
-microlife::detail::parser m_parser;
+microlife::detail::parser<microlife::detail::lexer,
+                          microlife::detail::basic_json>
+    m_parser;
 
 #define TEST_PARSER_PARSE_BASE(_json, _judge, _type)                           \
     do {                                                                       \

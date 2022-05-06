@@ -1,5 +1,4 @@
 #pragma once
-
 #include <array>    // array
 #include <cstdint>  // uint8_t
 #include <iostream> // os << value_t

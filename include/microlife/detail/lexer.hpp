@@ -1,5 +1,4 @@
 #pragma once
-
 #include "token_t.hpp" // token_t
 
 #include <assert.h> // assert()

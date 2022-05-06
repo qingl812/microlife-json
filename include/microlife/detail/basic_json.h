@@ -1,6 +1,7 @@
 #pragma once
-
+#include "lexer.hpp"
 #include "macro_scope.hpp"
+#include "parser.hpp"
 #include "value_t.hpp"
 
 #include <algorithm> // sort
@@ -28,6 +29,8 @@ public:
     using object_t = std::map<string_t, basic_json>;
 
     using value_t = detail::value_t;
+    using parser =
+        ::microlife::detail::parser<::microlife::detail::lexer, basic_json>;
 
     // private
     JSON_PRIVATE_UNLESS_TESTED
@@ -288,7 +291,10 @@ public:
     }
 
     // parse a string into a JSON value (deserialize)
-    bool parse(const string_t&);
+    bool parse(const string_t& str) {
+        static parser p;
+        return p.parse(str, *this);
+    }
 
 public:
     // 赋值函数

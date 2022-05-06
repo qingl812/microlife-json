@@ -24,12 +24,6 @@ set(
 	"include/microlife/detail/basic_json.h"
 
 	"include/microlife/json.h"
-
-	"microlife/detail/basic_json.cpp"
-)
-add_library(
-	microlife-json-lib
-    ${PROJECT_SOURCES}
 )
 include_directories("include")
 
