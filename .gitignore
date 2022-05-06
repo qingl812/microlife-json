@@ -1,8 +1,11 @@
 build/
-lcov/html/
+
+# vscode
 .vscode/
-out/
 .history/
-.vs
+
+# visual studio
+out/
+.vs/
 CMakeSettings.json
 TestResults/

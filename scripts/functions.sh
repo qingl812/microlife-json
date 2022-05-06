@@ -1,37 +1,38 @@
 #!/bin/bash
 
-source scripts/init.sh
-
-# print error
-function print_error() {
-    printf "[\033[31mERROR\033[0m] "
-    printf "$1\n"
+# print info
+function print_info() {
+    printf "[\033[33mINFO\033[0m] $*\n"
 }
 
 # print success
 function print_success() {
-    printf "[\033[32mSUCCESS\033[0m] "
-    printf "$1\n"
+    printf "[\033[32mSUCCESS\033[0m] $*\n"
 }
 
-# print info
-function print_info() {
-    printf "[\033[33mINFO\033[0m] "
-    printf "$1\n"
+# print warn
+function print_warn() {
+    printf "[\033[33mWARN\033[0m] $*\n"
+}
+
+# print error
+function print_error() {
+    printf "[\033[31mERROR\033[0m] $*\n" >&2
 }
 
 # exit with error
 function exit_with_error() {
-    print_error "$1"
+    print_error "$*"
     exit 1
 }
 
-# run no error
+# {command} {commmand} ...
 function run_no_error() {
-    $1 >>${log_file}
+    "$@"
+
+    # error
     if [ $? -ne 0 ]; then
-        print_error "$1 failed"
-        exit 1
+        exit_with_error "$@"
     fi
 }
 
@@ -42,10 +43,13 @@ function mkdir_if_not_exist() {
     fi
 }
 
-# run no error no log
-function run_no_error_no_log() {
-    $1
-    if [ $? -ne 0 ]; then
-        exit 1
+# get system name
+function get_system_name() {
+    if [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+        echo "linux"
+    elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]; then
+        echo "windows"
+    else
+        exit_with_error "Unknown operating system"
     fi
 }
