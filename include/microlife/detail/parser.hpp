@@ -213,7 +213,10 @@ public:
         /* key.type == string */                                               \
         if (!key.is_string())                                                  \
             return nullptr;                                                    \
-        object.emplace(std::move(key.get<string_t&>()), std::move(value));     \
+        /* https://stackoverflow.com/questions/7397934/                        \
+        calling-template-function-within-template-class       */               \
+        object.emplace(std::move(key.template get<string_t&>()),               \
+                       std::move(value));                                      \
     } while (0)
 
     basic_json* parse_end_object() {

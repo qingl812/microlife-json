@@ -166,7 +166,7 @@ public:
 
     // T get<T>()
     template <typename T>
-    T get() const {
+    T get() {
         // bool
         if constexpr (std::is_same_v<T, bool>) {
             json_assert(is_boolean());
@@ -230,7 +230,7 @@ public:
         // const map<string, basic_json>&
         else if constexpr (std::is_same_v<
                                T, const std::map<std::string, basic_json>&>) {
-            asjson_assertsert(is_object());
+            json_assert(is_object());
             return *m_value.object;
         }
 
