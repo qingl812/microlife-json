@@ -1,6 +1,6 @@
 #define JSON_TESTS_PRIVATE
 
-#include "microlife/detail/basic_json.h"
+#include "microlife/detail/basic_json.hpp"
 #include "microlife/detail/token_t.hpp"
 
 #include <gtest/gtest.h>

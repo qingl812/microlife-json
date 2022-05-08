@@ -1,4 +1,4 @@
-#include "microlife/detail/basic_json.h"
+#include "microlife/detail/basic_json.hpp"
 
 /***
  * @brief JSON

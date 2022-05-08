@@ -1,4 +1,4 @@
-#include "microlife/detail/basic_json.h"
+#include "microlife/detail/basic_json.hpp"
 #include "microlife/detail/lexer.hpp"
 
 #include <gtest/gtest.h>

@@ -21,11 +21,18 @@ set(
 	"include/microlife/detail/parser.hpp"
 	"include/microlife/detail/macro_scope.hpp"
 	"include/microlife/detail/macro_unscope.hpp"
-	"include/microlife/detail/basic_json.h"
+	"include/microlife/detail/basic_json.hpp"
 
-	"include/microlife/json.h"
+	"include/microlife/json.hpp"
 )
 include_directories("include")
+
+add_executable(
+	microlife-json
+	${PROJECT_SOURCES}
+
+	"example/example.cpp"
+)
 
 enable_testing()
 add_subdirectory(test)
